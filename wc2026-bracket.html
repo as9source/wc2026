@@ -521,7 +521,7 @@
   });
 
   // X：テキスト＋URL
-  document.getElementById("xBtn").addEventListener("click",()=>{
+  document.getElementById("xBtn").addEventListener("click",async()=>{
     const cmp=winners[mid(4,0)],ru=getRunnerUp(),bz=winners["third"];
     let lines=["⚽ W杯2026 決勝トーナメント予想"];
     if(cmp) lines.push("🥇 優勝："+nameOf(cmp));
@@ -529,7 +529,14 @@
     if(bz)  lines.push("🥉 3位："+nameOf(bz));
     if(!cmp&&!ru&&!bz) lines.push("予想してみて！");
     lines.push("","▶ あなたも予想してみてね！",PAGE_URL);
-    window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(lines.join("\n")),"_blank");
+    const text=lines.join("\n");
+    // スマホ：共有シートからXアプリを選べる（ログイン不要）
+    if(navigator.share){
+      try{await navigator.share({text:text});return;}
+      catch(e){if(e.name==="AbortError")return;}
+    }
+    // PC：ブラウザでツイート画面を開く
+    window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(text),"_blank");
   });
 
   // コピー
