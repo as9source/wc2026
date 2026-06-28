@@ -478,8 +478,21 @@
   document.getElementById("resetBtn").addEventListener("click",()=>{
     if(confirm("予想をすべてリセットしますか？")){winners={};save();render();toast("リセットしました");}});
 
-  // ---- share (LINE / X / copy) ----
+  // ---- share helpers ----
   const PAGE_URL="https://as9source.github.io/wc2026/wc2026-bracket.html";
+  function getRunnerUp(){
+    const w=winners[mid(4,0)]; if(!w)return null;
+    const p=parts(4,0); if(!p[0]||!p[1])return null;
+    return w===p[0]?p[1]:p[0];
+  }
+  function podiumText(){
+    const cmp=winners[mid(4,0)],ru=getRunnerUp(),bz=winners["third"];
+    let lines=[];
+    if(cmp) lines.push("🥇 優勝："+nameOf(cmp));
+    if(ru)  lines.push("🥈 準優勝："+nameOf(ru));
+    if(bz)  lines.push("🥉 3位："+nameOf(bz));
+    return lines;
+  }
   function buildShareText(){
     const RNAMES=["ベスト32","ベスト16","準々決勝","準決勝","決勝"];
     let lines=["⚽ W杯2026 決勝トーナメント予想 ⚽",""];
@@ -488,25 +501,61 @@
       for(let i=0;i<COUNTS[r];i++){const w=winners[mid(r,i)];if(w)picks.push(nameOf(w));}
       if(picks.length>0) lines.push("【"+RNAMES[r]+"】"+picks.join("、"));
     }
-    const cmp=winners[mid(4,0)]; if(cmp) lines.push("","🏆 優勝予想："+nameOf(cmp));
-    const bz=winners["third"]; if(bz) lines.push("🥉 3位予想："+nameOf(bz));
+    const pod=podiumText();
+    if(pod.length>0) lines.push("",pod.join("\n"));
     lines.push("","▶ あなたも予想してみて！",PAGE_URL);
     return lines.join("\n");
   }
   function shareTextShort(){
-    const cmp=winners[mid(4,0)],bz=winners["third"];
+    const pod=podiumText();
     let lines=["⚽ W杯2026 決勝トーナメント予想"];
-    if(cmp) lines.push("🏆 優勝："+nameOf(cmp));
-    if(bz) lines.push("🥉 3位："+nameOf(bz));
-    if(!cmp&&!bz) lines.push("予想してみて！");
+    if(pod.length>0) lines.push(...pod);
+    else lines.push("予想してみて！");
     lines.push(PAGE_URL);
     return lines.join("\n");
   }
+
+  // generate PNG blob (reusable)
+  async function generatePNG(){
+    if(typeof html2canvas!=="function") return null;
+    const wasEdit=editMode; if(wasEdit){editMode=false;render();}
+    const orig=sheet.style.transform; sheet.style.transform="scale(1)";
+    await new Promise(r=>setTimeout(r,120));
+    try{
+      const cv=await html2canvas(sheet,{backgroundColor:"#ffffff",scale:2,useCORS:true,
+        width:1640,height:sheet.scrollHeight,windowWidth:1640});
+      return await new Promise(resolve=>cv.toBlob(resolve,"image/png"));
+    }catch(e){return null;}
+    finally{sheet.style.transform=orig; if(wasEdit){editMode=true;render();}}
+  }
+
+  // share with image via Web Share API (mobile)
+  async function shareWithImage(text,fallbackUrl){
+    toast("画像を生成中…");
+    const blob=await generatePNG();
+    if(blob && navigator.canShare && navigator.canShare({files:[new File([blob],"x.png",{type:"image/png"})]})){
+      try{
+        const file=new File([blob],"wc2026-yosou.png",{type:"image/png"});
+        await navigator.share({text:text,files:[file]});
+        toast("共有しました"); return;
+      }catch(e){if(e.name==="AbortError")return;}
+    }
+    // fallback: download image + open URL
+    if(blob){
+      const a=document.createElement("a");a.download="wc2026-yosou.png";
+      a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);
+      toast("画像をダウンロードしました");
+    }
+    if(fallbackUrl) setTimeout(()=>window.open(fallbackUrl,"_blank"),500);
+  }
+
   document.getElementById("lineBtn").addEventListener("click",()=>{
-    window.open("https://line.me/R/share?text="+encodeURIComponent(buildShareText()),"_blank");
+    const textUrl="https://line.me/R/share?text="+encodeURIComponent(buildShareText());
+    shareWithImage(buildShareText(),textUrl);
   });
   document.getElementById("xBtn").addEventListener("click",()=>{
-    window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(shareTextShort()),"_blank");
+    const tweetUrl="https://twitter.com/intent/tweet?text="+encodeURIComponent(shareTextShort());
+    shareWithImage(shareTextShort(),tweetUrl);
   });
   document.getElementById("copyBtn").addEventListener("click",async()=>{
     const text=buildShareText();
@@ -515,17 +564,15 @@
       document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();toast("コピーしました");}
   });
 
-  // ---- PNG save ----
+  // ---- PNG save (download only) ----
   document.getElementById("pngBtn").addEventListener("click",async()=>{
-    if(typeof html2canvas!=="function"){toast("画像化ライブラリなし");return;}
-    if(editMode){editMode=false;render();}toast("画像を生成中…");
-    const orig=sheet.style.transform;sheet.style.transform="scale(1)";
-    await new Promise(r=>setTimeout(r,100));
-    try{const cv=await html2canvas(sheet,{backgroundColor:"#ffffff",scale:2,useCORS:true,
-      width:1640,height:sheet.scrollHeight,windowWidth:1640});
-      const a=document.createElement("a");a.download="wc2026-yosou.png";a.href=cv.toDataURL("image/png");a.click();
-      toast("PNG保存完了");}catch(err){toast("画像生成失敗");}
-    finally{sheet.style.transform=orig;}});
+    toast("画像を生成中…");
+    const blob=await generatePNG();
+    if(blob){const a=document.createElement("a");a.download="wc2026-yosou.png";
+      a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);
+      toast("PNG保存完了");}
+    else toast("画像生成失敗");
+  });
   let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(drawLinks,120);});
 
   load();recompute();buildSkeleton();render();
