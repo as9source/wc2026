@@ -224,23 +224,23 @@
   };
 
   const R32=[
-    ["RSA","CAN"],["NED","MAR"],["BRA","JPN"],["CIV","NOR"],
-    ["GER","PAR"],["FRA","SWE"],["MEX","ECU"],["ENG","COD"],
-    ["BEL","SEN"],["USA","BIH"],["ESP","AUT"],["POR","CRO"],
-    ["SUI","ALG"],["EGY","AUS"],["ARG","CPV"],["COL","GHA"]
+    ["GER","PAR"],["FRA","SWE"],["RSA","CAN"],["NED","MAR"],
+    ["POR","CRO"],["ESP","AUT"],["USA","BIH"],["BEL","SEN"],
+    ["BRA","JPN"],["CIV","NOR"],["MEX","ECU"],["ENG","COD"],
+    ["ARG","CPV"],["EGY","AUS"],["SUI","ALG"],["COL","GHA"]
   ];
   const FIX=[
-    "6/29 ロサンゼルス","6/30 モンテレイ","6/30 ヒューストン","7/1 ダラス",
-    "6/30 ボストン","7/1 ニュージャージー","7/1 メキシコシティ","7/2 アトランタ",
-    "7/2 シアトル","7/2 SF湾岸","7/3 ロサンゼルス","7/3 トロント",
-    "7/3 バンクーバー","7/4 ダラス","7/4 マイアミ","7/4 カンザスシティ"
+    "6/30 ボストン","7/1 ニュージャージー","6/29 ロサンゼルス","6/30 モンテレイ",
+    "7/3 トロント","7/3 ロサンゼルス","7/2 SF湾岸","7/2 シアトル",
+    "6/30 ヒューストン","7/1 ダラス","7/1 メキシコシティ","7/2 アトランタ",
+    "7/4 マイアミ","7/4 ダラス","7/3 バンクーバー","7/4 カンザスシティ"
   ];
   const LBADGE16=["A","B","C","D"], RBADGE16=["G","H","I","J"];
   const LBADGEQF=["E","F"], RBADGEQF=["K","L"];
   const COUNTS=[16,8,4,2,1], TOTAL=32;
 
   let winners={},names={},editMode=false;
-  const SKEY="wc2026_bracket_v3";
+  const SKEY="wc2026_bracket_v4";
   const save=()=>{try{localStorage.setItem(SKEY,JSON.stringify({winners,names}));}catch(e){}};
   const load=()=>{try{const o=JSON.parse(localStorage.getItem(SKEY)||"{}");if(o.winners)winners=o.winners;if(o.names)names=o.names;}catch(e){}};
   const nameOf=c=>names[c]||(TEAMS[c]&&TEAMS[c].n)||c;
@@ -357,7 +357,7 @@
     const c=document.createElement(isEdit?"div":"button");c.className="chip";
     const t=TEAMS[code]||{};if(t.jp)c.classList.add("jp");
     if(opts.third){if(w===code)c.classList.add("pick3");else if(w)c.classList.add("out");}
-    else{if(w===code)c.classList.add(opts.champ?"picked champ":"picked");else if(w)c.classList.add("out");}
+    else{if(w===code){c.classList.add("picked");if(opts.champ)c.classList.add("champ");}else if(w)c.classList.add("out");}
 
     if(isEdit){
       const inp=document.createElement("input");inp.value=nameOf(code);inp.setAttribute("aria-label","チーム名");
