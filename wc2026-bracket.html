@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FIFAワールドカップ2026 決勝トーナメント予想</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
     --navy:#13265c; --navy2:#1c3a73; --navy-deep:#0a1638;
@@ -165,9 +166,9 @@
     <span id="zoomLevel" style="min-width:32px;text-align:center;font-size:11px;color:#666;font-weight:700">100%</span>
     <button class="btn" id="zoomIn">＋</button>
   </div>
-  <button class="btn" id="lineBtn" style="background:#06C755;color:#fff;border-color:#06C755">LINE 画像共有</button>
+  <button class="btn" id="lineBtn" style="background:#06C755;color:#fff;border-color:#06C755">LINE PDF共有</button>
   <button class="btn" id="xBtn" style="background:#000;color:#fff;border-color:#000">𝕏 テキスト共有</button>
-  <button class="btn" id="pdfBtn">📄 PDF保存</button>
+  <button class="btn" id="saveBtn">📷 画像保存</button>
   <button class="btn" id="copyBtn">📋 コピー</button>
   <button class="btn warn" id="resetBtn">リセット</button>
 </div>
@@ -517,14 +518,24 @@
     finally{sheet.style.transform=orig;}
   }
 
-  // LINE：画像だけ共有
+  // LINE：PDFで共有
   document.getElementById("lineBtn").addEventListener("click",async()=>{
-    toast("画像を作成中…");
+    toast("PDFを作成中…");
     const blob=await captureImage();
-    if(!blob){toast("画像の作成に失敗しました");return;}
-    // スマホ：Web Share APIで画像だけ共有シートへ
+    if(!blob){toast("作成に失敗しました");return;}
+    // canvas→PDF変換
+    const img=new Image();
+    const url=URL.createObjectURL(blob);
+    img.src=url;
+    await new Promise(r=>{img.onload=r;});
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:img.width>img.height?"l":"p",unit:"px",format:[img.width/2,img.height/2]});
+    pdf.addImage(img,0,0,img.width/2,img.height/2);
+    const pdfBlob=pdf.output("blob");
+    URL.revokeObjectURL(url);
+    // スマホ：Web Share APIでPDFを共有シートへ
     if(navigator.canShare){
-      const file=new File([blob],"wc2026-yosou.png",{type:"image/png"});
+      const file=new File([pdfBlob],"wc2026-yosou.pdf",{type:"application/pdf"});
       if(navigator.canShare({files:[file]})){
         try{
           await navigator.share({files:[file]});
@@ -532,11 +543,11 @@
         }catch(e){if(e.name==="AbortError")return;}
       }
     }
-    // PC：画像ダウンロード → LINEで手動添付
-    const a=document.createElement("a");a.download="wc2026-yosou.png";
-    a.href=URL.createObjectURL(blob);a.click();
+    // PC：PDFダウンロード
+    const a=document.createElement("a");a.download="wc2026-yosou.pdf";
+    a.href=URL.createObjectURL(pdfBlob);a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-    toast("画像をダウンロードしました。LINEに添付してください");
+    toast("PDFをダウンロードしました");
   });
 
   // X：テキスト＋URL（X APIなしでは画像添付不可）
@@ -556,10 +567,15 @@
     copyText(buildShareText()); toast("コピーしました");
   });
 
-  // PDF保存
-  document.getElementById("pdfBtn").addEventListener("click",()=>{
-    const orig=sheet.style.transform; sheet.style.transform="none";
-    setTimeout(()=>{window.print();sheet.style.transform=orig;},200);
+  // 画像保存（ダウンロード）
+  document.getElementById("saveBtn").addEventListener("click",async()=>{
+    toast("画像を作成中…");
+    const blob=await captureImage();
+    if(!blob){toast("作成に失敗しました");return;}
+    const a=document.createElement("a");a.download="wc2026-yosou.png";
+    a.href=URL.createObjectURL(blob);a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    toast("ダウンロードしました");
   });
   let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(drawLinks,120);});
 
