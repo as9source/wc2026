@@ -7,147 +7,141 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   :root{
-    --navy:#13265c; --navy2:#1c3a73; --navy-deep:#0c1b40;
+    --navy:#13265c; --navy2:#1c3a73; --navy-deep:#0a1638;
     --ink:#1d2740; --muted:#6c7a92; --line:#c5d0e0; --line2:#dde4ef;
-    --bg:#eaeef5; --card:#ffffff; --gold:#b9892f; --gold-bg:#fbf3e0;
-    --green:#2f7d54; --green-bg:#eaf5ee; --pick:#13265c; --pick-bg:#e8f0ff;
-    --r32-w:196px; --r16-w:140px; --qf-w:140px; --sf-w:130px; --ctr-w:208px; --gap:30px;
+    --bg:#e8ecf4; --card:#ffffff; --gold:#c8a22e; --gold-bg:#fdf6e3;
+    --green:#2a7a50; --green-bg:#eaf5ee; --pick-bg:#dfe8fa;
+    --gap:24px; --r32w:178px; --r16w:128px; --qfw:128px; --sfw:118px; --ctrw:210px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;background:var(--bg);color:var(--ink);
     font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Noto Sans JP",system-ui,sans-serif;
     -webkit-font-smoothing:antialiased}
 
-  /* ---- top control strip (not exported) ---- */
   .controls{position:sticky;top:0;z-index:40;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
-    padding:9px 16px;background:#fff;border-bottom:1px solid var(--line2)}
+    padding:9px 14px;background:#fff;border-bottom:1px solid var(--line2)}
   .prog{display:flex;align-items:center;gap:10px;margin-right:auto}
-  .meter{width:130px;height:7px;border-radius:99px;background:#e6ebf3;overflow:hidden;border:1px solid var(--line2)}
+  .meter{width:120px;height:7px;border-radius:99px;background:#e6ebf3;overflow:hidden;border:1px solid var(--line2)}
   .meter .fill{height:100%;width:0;background:linear-gradient(90deg,var(--navy),var(--gold));transition:width .35s}
-  .prog .txt{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-  .prog .txt b{color:var(--ink)}
-  button.btn{font:inherit;font-size:12.5px;font-weight:700;color:var(--ink);cursor:pointer;background:#fff;
-    border:1px solid var(--line);border-radius:8px;padding:8px 13px;transition:.15s}
-  button.btn:hover{background:#f3f6fb;border-color:var(--navy2)}
-  button.btn:active{transform:translateY(1px)}
+  .prog .txt{font-size:12px;color:var(--muted)}.prog .txt b{color:var(--ink)}
+  button.btn{font:inherit;font-size:12px;font-weight:700;color:var(--ink);cursor:pointer;background:#fff;
+    border:1px solid var(--line);border-radius:7px;padding:7px 11px;transition:.15s}
+  button.btn:hover{background:#f0f3f9;border-color:var(--navy2)} button.btn:active{transform:translateY(1px)}
   button.btn[aria-pressed="true"]{border-color:var(--navy);color:#fff;background:var(--navy)}
   button.btn.warn:hover{border-color:#b4452f;color:#b4452f}
 
-  .wrap{overflow:auto;-webkit-overflow-scrolling:touch;padding:18px 18px 30px}
-  .sheet{position:relative;width:1680px;margin:0 auto;background:linear-gradient(180deg,#f7f9fc,#eef2f8);
-    border:1px solid var(--line);border-radius:16px;overflow:hidden;
-    box-shadow:0 18px 50px rgba(20,38,80,.16);transform-origin:top center;transition:transform .25s ease-out}
-  .topbar{display:flex;align-items:center;gap:18px;padding:16px 22px;
-    background:linear-gradient(110deg,var(--navy-deep),var(--navy) 70%);color:#fff}
-  .logo{flex:0 0 auto;width:74px;height:74px;border-radius:12px;background:#fff;color:var(--navy-deep);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;
-    box-shadow:0 4px 12px rgba(0,0,0,.25)}
-  .logo .b{font-size:32px;font-weight:900;line-height:.9}
-  .logo .s{font-size:8px;font-weight:800;letter-spacing:.15em;margin-top:4px;color:var(--navy2)}
+  .wrap{overflow:auto;-webkit-overflow-scrolling:touch;padding:14px}
+  .sheet{position:relative;width:1640px;margin:0 auto;background:linear-gradient(180deg,#f5f7fb,#eaeff6);
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    box-shadow:0 16px 44px rgba(20,38,80,.15);transform-origin:top left;transition:transform .2s ease-out}
+
+  /* ---- header ---- */
+  .topbar{display:flex;align-items:center;gap:16px;padding:14px 20px;
+    background:linear-gradient(100deg,var(--navy-deep),var(--navy) 65%,#1e3e7a);color:#fff}
+  .wc-logo{flex:0 0 auto;width:66px;height:66px;position:relative}
+  .wc-logo svg{width:100%;height:100%}
   .ttl{flex:1;text-align:center}
-  .ttl h1{margin:0;font-size:30px;font-weight:900;letter-spacing:.04em}
-  .ttl p{margin:5px 0 0;font-size:12.5px;letter-spacing:.18em;color:#aebbd8;font-weight:700}
-  .topbar .spacer{width:74px;flex:0 0 auto}
+  .ttl h1{margin:0;font-size:27px;font-weight:900;letter-spacing:.06em}
+  .ttl p{margin:4px 0 0;font-size:11.5px;letter-spacing:.16em;color:#9eb0d4;font-weight:700}
+  .topbar .spacer{width:66px;flex:0 0 auto}
 
-  .board{position:relative;display:flex;justify-content:center;align-items:stretch;gap:var(--gap);
-    padding:20px 22px 8px;min-width:max-content}
+  .board{position:relative;display:flex;justify-content:center;align-items:stretch;gap:var(--gap);padding:18px 16px 10px}
   svg.links{position:absolute;left:0;top:0;pointer-events:none;z-index:0;overflow:visible}
-
   .side{display:flex;gap:var(--gap);z-index:1}
   .col{display:flex;flex-direction:column}
-  .col.c32{width:var(--r32-w)} .col.c16{width:var(--r16-w)}
-  .col.cqf{width:var(--qf-w)} .col.csf{width:var(--sf-w)}
+  .col.c32{width:var(--r32w)} .col.c16{width:var(--r16w)}
+  .col.cqf{width:var(--qfw)} .col.csf{width:var(--sfw)}
   .col-body{flex:1;display:flex;flex-direction:column;justify-content:space-around}
-
-  .collabel{text-align:center;padding:0 2px 8px}
-  .cl-main{font-size:13px;font-weight:900;color:var(--navy);letter-spacing:.06em}
-  .cl-sub{font-size:10px;color:var(--muted);font-weight:700;margin-top:2px}
+  .collabel{text-align:center;padding:0 2px 7px}
+  .cl-main{font-size:12.5px;font-weight:900;color:var(--navy);letter-spacing:.06em}
+  .cl-sub{font-size:9.5px;color:var(--muted);font-weight:700;margin-top:2px}
 
   .center{display:flex;flex-direction:column;align-items:center;justify-content:center;
-    width:var(--ctr-w);z-index:2;gap:0}
+    width:var(--ctrw);z-index:2;gap:0}
 
   /* ---- match cards ---- */
-  .match{position:relative;background:var(--card);border:1px solid var(--line2);border-radius:9px;
-    margin:6px 0;padding:4px;box-shadow:0 2px 6px rgba(20,38,80,.07)}
-  .mhead{display:flex;align-items:center;justify-content:center;gap:7px;padding:2px 2px 4px}
-  .badge{width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:12px;font-weight:900;
+  .match{position:relative;background:var(--card);border:1px solid var(--line2);border-radius:8px;
+    margin:5px 0;padding:3px;box-shadow:0 2px 5px rgba(20,38,80,.06)}
+  .match.target{border-color:var(--navy);box-shadow:0 0 0 2px rgba(19,38,92,.25)}
+  .mhead{display:flex;align-items:center;justify-content:center;gap:6px;padding:2px 2px 3px}
+  .badge{width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;font-weight:900;
     display:flex;align-items:center;justify-content:center}
-  .mdate{font-size:9.5px;color:var(--muted);font-weight:700}
-  .meta{font-size:9.5px;color:var(--muted);text-align:center;padding:1px 2px 3px;font-weight:600}
-  .match.target{border-color:var(--navy);box-shadow:0 0 0 2px rgba(19,38,92,.3),0 6px 14px rgba(20,38,80,.2)}
+  .meta{font-size:9px;color:var(--muted);text-align:center;padding:1px 2px 2px;font-weight:600}
+  .slot{display:block} .slot + .slot{margin-top:2px}
 
-  .slot{display:block} .slot + .slot{margin-top:3px}
-  .chip{position:relative;width:100%;display:flex;align-items:center;gap:7px;border-radius:6px;
-    border:1px solid #e3e8f1;background:#fff;color:var(--ink);font:inherit;font-size:13px;font-weight:600;
-    text-align:left;padding:6px 8px;cursor:grab;touch-action:none;user-select:none;
-    transition:border-color .14s,background .14s,opacity .16s}
-  .chip:hover{border-color:var(--line)}
-  .chip .seed{flex:0 0 auto;width:21px;height:21px;border-radius:4px;background:var(--navy);color:#fff;
-    font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
-  .chip .flag{font-size:16px;line-height:1}
+  .chip{position:relative;width:100%;display:flex;align-items:center;gap:6px;border-radius:5px;
+    border:1px solid #e3e8f1;background:#fff;color:var(--ink);font:inherit;font-size:12.5px;font-weight:600;
+    text-align:left;padding:5px 6px;cursor:grab;touch-action:none;user-select:none;transition:.14s}
+  .chip:hover{border-color:#b0bdd4}
+  .chip .seed{flex:0 0 auto;width:20px;height:20px;border-radius:4px;background:var(--navy);color:#fff;
+    font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .chip .flag{width:22px;height:16px;border-radius:2px;object-fit:cover;flex:0 0 auto;
+    border:1px solid rgba(0,0,0,.1)}
+  .chip .flag-ph{width:22px;height:16px;border-radius:2px;background:#e8ecf2;flex:0 0 auto;border:1px solid #ddd}
   .chip .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .chip .mark{width:15px;text-align:center;font-size:12px;color:var(--muted)}
+  .chip .mark{width:14px;text-align:center;font-size:11px;color:var(--muted)}
   .chip.empty{cursor:default;color:#aab4c6;font-weight:500;border-style:dashed;background:#fafbfd}
-  .chip.empty .flag{opacity:.4}
-  .chip.picked{border-color:var(--pick);background:var(--pick-bg);font-weight:800;box-shadow:inset 0 0 0 1px var(--pick)}
+  .chip.picked{border-color:var(--navy);background:var(--pick-bg);font-weight:800;box-shadow:inset 0 0 0 1px var(--navy)}
   .chip.picked .mark{color:var(--navy)}
   .chip.champ.picked{border-color:var(--gold);background:var(--gold-bg);box-shadow:inset 0 0 0 1px var(--gold)}
   .chip.champ.picked .mark{color:var(--gold)}
   .chip.pick3{border-color:var(--green);background:var(--green-bg);font-weight:800;box-shadow:inset 0 0 0 1px var(--green)}
   .chip.pick3 .mark{color:var(--green)}
-  .chip.out{opacity:.4}
-  .chip.jp{box-shadow:inset 0 0 0 1px #c9a24a}
-  .chip.jp.picked{box-shadow:inset 0 0 0 1px var(--pick)}
-  .chip.dragging{opacity:.25}
+  .chip.out{opacity:.38}
+  .chip.jp{box-shadow:inset 0 0 0 1.5px #c9282880}
+  .chip.jp.picked{box-shadow:inset 0 0 0 1px var(--navy)}
+  .chip.dragging{opacity:.2}
   .chip:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
   .editing .chip{cursor:default}
-  .chip input{font:inherit;font-size:13px;font-weight:700;color:var(--ink);background:#fff;
-    border:1px solid var(--navy);border-radius:4px;padding:3px 5px;width:100%}
+  .chip input{font:inherit;font-size:12px;font-weight:700;color:var(--ink);background:#fff;
+    border:1px solid var(--navy);border-radius:3px;padding:2px 4px;width:100%}
 
   /* ---- center: trophy / final / third ---- */
-  .trophy{text-align:center;margin-bottom:6px}
-  .trophy .cup{font-size:62px;line-height:1;filter:drop-shadow(0 8px 16px rgba(184,137,47,.45))}
-  .trophy .champion{margin-top:4px;font-size:17px;font-weight:900;color:var(--navy);
-    display:inline-flex;align-items:center;gap:8px;min-height:24px}
-  .trophy .champion.empty{color:#aab4c6;font-size:13px;font-weight:700}
-  .trophy.target{outline:2px dashed var(--navy);outline-offset:4px;border-radius:12px}
+  .trophy-wrap{text-align:center;margin-bottom:6px}
+  .trophy-svg{width:100px;height:130px;filter:drop-shadow(0 6px 14px rgba(180,130,40,.35))}
+  .trophy-wrap.target{outline:2px dashed var(--navy);outline-offset:4px;border-radius:10px}
+  .champ-card{width:168px;margin:6px auto 0;border:2px solid var(--gold);background:linear-gradient(180deg,#fdf8ec,#fdf3d8);
+    border-radius:10px;padding:10px 10px 12px;text-align:center;
+    box-shadow:0 6px 18px rgba(180,130,40,.22)}
+  .champ-card .lbl{font-size:10px;letter-spacing:.25em;color:var(--gold);font-weight:900;margin-bottom:6px}
+  .champ-card .winner{display:flex;align-items:center;justify-content:center;gap:8px;min-height:32px}
+  .champ-card .winner .flag{width:32px;height:22px;border-radius:3px;object-fit:cover;border:1px solid rgba(0,0,0,.12)}
+  .champ-card .winner .name{font-size:18px;font-weight:900;color:var(--navy)}
+  .champ-card .winner.empty{color:#bbb;font-size:13px;font-weight:600}
 
-  .final-card{width:172px;border:1px solid var(--gold);background:#fff;border-radius:11px;
-    margin:4px 0 0;padding:0 0 6px;overflow:hidden;box-shadow:0 6px 16px rgba(184,137,47,.18)}
-  .fc-head{background:linear-gradient(180deg,#caa23f,var(--gold));color:#fff;font-weight:900;font-size:15px;
-    text-align:center;padding:6px;letter-spacing:.12em}
-  .fc-venue{font-size:10px;color:var(--muted);text-align:center;padding:5px 4px 6px;font-weight:700;line-height:1.4}
-  .final-card .slot{padding:0 6px}
-  .final-card .slot + .slot{margin-top:4px}
+  .final-card{width:168px;border:1px solid var(--gold);background:#fff;border-radius:10px;
+    margin:4px 0 0;padding:0 0 5px;overflow:hidden;box-shadow:0 5px 14px rgba(180,130,40,.16)}
+  .fc-head{background:linear-gradient(180deg,#d4ab3a,var(--gold));color:#fff;font-weight:900;font-size:14px;
+    text-align:center;padding:5px;letter-spacing:.14em}
+  .fc-venue{font-size:9.5px;color:var(--muted);text-align:center;padding:4px 4px 5px;font-weight:700;line-height:1.35}
+  .final-card .slot{padding:0 5px} .final-card .slot + .slot{margin-top:3px}
 
-  .third-card{width:172px;border:1px solid var(--green);background:#fff;border-radius:11px;
-    margin:14px 0 0;padding:0 0 8px;overflow:hidden;box-shadow:0 5px 12px rgba(47,125,84,.14)}
-  .tc-head{background:linear-gradient(180deg,#39966a,var(--green));color:#fff;font-weight:900;font-size:12.5px;
-    text-align:center;padding:5px;letter-spacing:.1em}
-  .tc-venue{font-size:9.5px;color:var(--muted);text-align:center;padding:4px 4px 5px;font-weight:700;line-height:1.35}
-  .slot3{padding:0 6px;margin:3px 0}
-  .bronze{margin:7px 6px 0;display:flex;align-items:center;justify-content:center;gap:7px;border-radius:7px;
-    padding:6px;border:1px dashed var(--line);min-height:30px}
-  .bronze.target{border-color:var(--green);border-style:solid;box-shadow:0 0 0 2px rgba(47,125,84,.25)}
-  .b3{font-size:15px}
-  .who3{font-size:14px;font-weight:900;color:var(--green);display:flex;align-items:center;gap:6px}
-  .who3.empty{color:#aab4c6;font-weight:700;font-size:12px}
+  .third-card{width:168px;border:1px solid var(--green);background:#fff;border-radius:10px;
+    margin:12px 0 0;padding:0 0 6px;overflow:hidden;box-shadow:0 4px 10px rgba(42,122,80,.12)}
+  .tc-head{background:linear-gradient(180deg,#37976a,var(--green));color:#fff;font-weight:900;font-size:12px;
+    text-align:center;padding:4px;letter-spacing:.1em}
+  .tc-venue{font-size:9px;color:var(--muted);text-align:center;padding:3px 4px 4px;font-weight:700;line-height:1.3}
+  .slot3{padding:0 5px;margin:2px 0}
+  .bronze{margin:6px 5px 0;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:6px;
+    padding:5px;border:1px dashed var(--line);min-height:28px}
+  .bronze.target{border-color:var(--green);border-style:solid;box-shadow:0 0 0 2px rgba(42,122,80,.2)}
+  .who3{font-size:13px;font-weight:900;color:var(--green);display:flex;align-items:center;gap:5px}
+  .who3.empty{color:#aab4c6;font-weight:700;font-size:11px}
+  .who3 .flag{width:20px;height:14px;border-radius:2px;object-fit:cover;border:1px solid rgba(0,0,0,.1)}
 
-  /* ---- footer ---- */
-  .foot{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
-    padding:12px 22px 16px;border-top:1px solid var(--line2);background:#fff;color:var(--muted);font-size:11px;line-height:1.6}
-  .foot .big{color:var(--ink);font-weight:800;font-size:12.5px}
-  .foot .note{max-width:760px}
+  .foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    padding:10px 20px 14px;border-top:1px solid var(--line2);background:#fff;color:var(--muted);font-size:10.5px;line-height:1.5}
+  .foot .big{color:var(--ink);font-weight:800;font-size:12px}
 
-  .ghost{position:fixed;z-index:999;pointer-events:none;display:flex;align-items:center;gap:7px;padding:8px 11px;
-    border-radius:8px;font-size:13px;font-weight:800;color:#fff;background:var(--navy);
-    border:1px solid var(--navy-deep);box-shadow:0 12px 26px rgba(0,0,0,.3);transform:translate(-50%,-130%) rotate(-2deg)}
-  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(18px);background:var(--navy);
-    color:#fff;font-size:13px;font-weight:700;padding:10px 16px;border-radius:9px;opacity:0;
+  .ghost{position:fixed;z-index:999;pointer-events:none;display:flex;align-items:center;gap:6px;padding:7px 10px;
+    border-radius:7px;font-size:12px;font-weight:800;color:#fff;background:var(--navy);
+    box-shadow:0 10px 22px rgba(0,0,0,.28);transform:translate(-50%,-130%) rotate(-2deg)}
+  .ghost .flag{width:20px;height:14px;border-radius:2px;object-fit:cover}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(16px);background:var(--navy);
+    color:#fff;font-size:13px;font-weight:700;padding:9px 15px;border-radius:8px;opacity:0;
     transition:.25s;z-index:60;pointer-events:none}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
@@ -155,24 +149,31 @@
 <div class="controls">
   <div class="prog">
     <div class="meter"><div class="fill" id="fill"></div></div>
-    <div class="txt">予想 <b id="pdone">0</b>/<span id="ptot">32</span></div>
+    <div class="txt">予想 <b id="pdone">0</b>/32</div>
   </div>
-  <div style="display:flex;gap:8px;align-items:center">
-    <button class="btn" id="fitBtn" title="全体を表示">全体表示</button>
-    <span style="color:#999;font-size:12px">ズーム</span>
+  <div style="display:flex;gap:7px;align-items:center">
+    <button class="btn" id="fitBtn">全体表示</button>
     <button class="btn" id="zoomOut">−</button>
-    <span id="zoomLevel" style="min-width:35px;text-align:center;font-size:12px;color:#666;font-weight:700">100%</span>
-    <button class="btn" id="zoomIn">+</button>
+    <span id="zoomLevel" style="min-width:32px;text-align:center;font-size:11px;color:#666;font-weight:700">100%</span>
+    <button class="btn" id="zoomIn">＋</button>
   </div>
   <button class="btn" id="editBtn" aria-pressed="false">チーム名を編集</button>
-  <button class="btn" id="pngBtn">画像で保存</button>
+  <button class="btn" id="pngBtn">📷 画像で保存</button>
   <button class="btn warn" id="resetBtn">リセット</button>
 </div>
 
 <div class="wrap" id="wrap">
   <div class="sheet" id="sheet">
     <div class="topbar">
-      <div class="logo"><span class="b">🏆</span><span class="s">WC2026</span></div>
+      <div class="wc-logo">
+        <svg viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="33" cy="33" r="31" fill="#fff" stroke="#c8a22e" stroke-width="2"/>
+          <circle cx="33" cy="33" r="26" fill="none" stroke="#c8a22e" stroke-width="1.2"/>
+          <text x="33" y="30" text-anchor="middle" font-size="11" font-weight="900" fill="#13265c" font-family="sans-serif">FIFA</text>
+          <text x="33" y="42" text-anchor="middle" font-size="8" font-weight="800" fill="#13265c" font-family="sans-serif" letter-spacing=".5">WORLD CUP</text>
+          <text x="33" y="52" text-anchor="middle" font-size="10" font-weight="900" fill="#c8a22e" font-family="sans-serif">2026</text>
+        </svg>
+      </div>
       <div class="ttl">
         <h1>FIFAワールドカップ2026　決勝トーナメント予想</h1>
         <p>KNOCKOUT BRACKET ・ 国名をドラッグ／タップで勝者を選択</p>
@@ -181,11 +182,14 @@
     </div>
     <div class="board" id="board">
       <svg class="links" id="links" aria-hidden="true"></svg>
-      <!-- injected -->
     </div>
     <div class="foot">
-      <div><span class="big">全64試合</span>　2026年6月11日（木）〜7月19日（日）　米国・カナダ・メキシコ開催</div>
-      <div class="note">※日程は開催地の現地日。ラウンド16以降の対戦カード・会場・日時は試合結果により決定。予想は自動保存され、「画像で保存」でPNG化できます。</div>
+      <div><span class="big">全64試合</span>　2026年6月11日（木）〜7月19日（日）</div>
+      <div>※表記の日時はすべて日本時間。予想は自動保存。「画像で保存」でPNG化。</div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:16px;height:11px;border-radius:2px;background:var(--navy);display:inline-block"></span>北中米開催</span>
+        <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:16px;height:11px;border-radius:2px;background:var(--green);display:inline-block"></span>その他開催</span>
+      </div>
     </div>
   </div>
 </div>
@@ -193,149 +197,147 @@
 <div class="toast" id="toast"></div>
 
 <script>
-(() => {
+(()=>{
   "use strict";
 
-  const TEAMS = {
-    GER:{n:"ドイツ",f:"🇩🇪"}, PAR:{n:"パラグアイ",f:"🇵🇾"},
-    FRA:{n:"フランス",f:"🇫🇷"}, SWE:{n:"スウェーデン",f:"🇸🇪"},
-    RSA:{n:"南アフリカ",f:"🇿🇦"}, CAN:{n:"カナダ",f:"🇨🇦"},
-    NED:{n:"オランダ",f:"🇳🇱"}, MAR:{n:"モロッコ",f:"🇲🇦"},
-    POR:{n:"ポルトガル",f:"🇵🇹"}, CRO:{n:"クロアチア",f:"🇭🇷"},
-    ESP:{n:"スペイン",f:"🇪🇸"}, AUT:{n:"オーストリア",f:"🇦🇹"},
-    USA:{n:"アメリカ",f:"🇺🇸"}, BIH:{n:"ボスニア",f:"🇧🇦"},
-    BEL:{n:"ベルギー",f:"🇧🇪"}, SEN:{n:"セネガル",f:"🇸🇳"},
-    BRA:{n:"ブラジル",f:"🇧🇷"}, JPN:{n:"日本",f:"🇯🇵",jp:true},
-    CIV:{n:"コートジボワール",f:"🇨🇮"}, NOR:{n:"ノルウェー",f:"🇳🇴"},
-    MEX:{n:"メキシコ",f:"🇲🇽"}, ECU:{n:"エクアドル",f:"🇪🇨"},
-    ENG:{n:"イングランド",f:"🏴󠁧󠁢󠁥󠁮󠁧󠁿"}, COD:{n:"DRコンゴ",f:"🇨🇩"},
-    ARG:{n:"アルゼンチン",f:"🇦🇷"}, CPV:{n:"カーボベルデ",f:"🇨🇻"},
-    EGY:{n:"エジプト",f:"🇪🇬"}, AUS:{n:"オーストラリア",f:"🇦🇺"},
-    SUI:{n:"スイス",f:"🇨🇭"}, ALG:{n:"アルジェリア",f:"🇩🇿"},
-    COL:{n:"コロンビア",f:"🇨🇴"}, GHA:{n:"ガーナ",f:"🇬🇭"}
+  // ---- Flag CDN ----
+  const flagUrl=(iso)=>"https://flagcdn.com/w40/"+iso.toLowerCase()+".png";
+
+  // code -> {name, flag ISO2, jp?}
+  const TEAMS={
+    GER:{n:"ドイツ",f:"de"}, PAR:{n:"パラグアイ",f:"py"},
+    FRA:{n:"フランス",f:"fr"}, SWE:{n:"スウェーデン",f:"se"},
+    RSA:{n:"南アフリカ",f:"za"}, CAN:{n:"カナダ",f:"ca"},
+    NED:{n:"オランダ",f:"nl"}, MAR:{n:"モロッコ",f:"ma"},
+    POR:{n:"ポルトガル",f:"pt"}, CRO:{n:"クロアチア",f:"hr"},
+    ESP:{n:"スペイン",f:"es"}, AUT:{n:"オーストリア",f:"at"},
+    USA:{n:"アメリカ",f:"us"}, BIH:{n:"ボスニア",f:"ba"},
+    BEL:{n:"ベルギー",f:"be"}, SEN:{n:"セネガル",f:"sn"},
+    BRA:{n:"ブラジル",f:"br"}, JPN:{n:"日本",f:"jp",jp:true},
+    CIV:{n:"コートジボワール",f:"ci"}, NOR:{n:"ノルウェー",f:"no"},
+    MEX:{n:"メキシコ",f:"mx"}, ECU:{n:"エクアドル",f:"ec"},
+    ENG:{n:"イングランド",f:"gb-eng"}, COD:{n:"DRコンゴ",f:"cd"},
+    ARG:{n:"アルゼンチン",f:"ar"}, CPV:{n:"カーボベルデ",f:"cv"},
+    EGY:{n:"エジプト",f:"eg"}, AUS:{n:"オーストラリア",f:"au"},
+    SUI:{n:"スイス",f:"ch"}, ALG:{n:"アルジェリア",f:"dz"},
+    COL:{n:"コロンビア",f:"co"}, GHA:{n:"ガーナ",f:"gh"}
   };
 
-  // Round of 32, ordered so consecutive pairs advance together.
-  // indices 0-7 = LEFT half, 8-15 = RIGHT half
-  const R32 = [
-    ["GER","PAR"], ["FRA","SWE"], ["RSA","CAN"], ["NED","MAR"],
-    ["POR","CRO"], ["ESP","AUT"], ["USA","BIH"], ["BEL","SEN"],
-    ["BRA","JPN"], ["CIV","NOR"], ["MEX","ECU"], ["ENG","COD"],
-    ["ARG","CPV"], ["EGY","AUS"], ["SUI","ALG"], ["COL","GHA"]
+  const R32=[
+    ["RSA","CAN"],["NED","MAR"],["BRA","JPN"],["CIV","NOR"],
+    ["GER","PAR"],["FRA","SWE"],["MEX","ECU"],["ENG","COD"],
+    ["BEL","SEN"],["USA","BIH"],["ESP","AUT"],["POR","CRO"],
+    ["SUI","ALG"],["EGY","AUS"],["ARG","CPV"],["COL","GHA"]
   ];
-  const FIX = [
-    "6/29 ボストン","6/30 ニュージャージー","6/28 ロサンゼルス","6/29 モンテレイ",
-    "7/2 トロント","7/2 ロサンゼルス","7/1 SF湾岸","7/1 シアトル",
-    "6/29 ヒューストン","6/30 ダラス","6/30 メキシコシティ","7/1 アトランタ",
-    "7/3 マイアミ","7/3 ダラス","7/2 バンクーバー","7/3 カンザスシティ"
+  const FIX=[
+    "6/29 ロサンゼルス","6/30 モンテレイ","6/30 ヒューストン","7/1 ダラス",
+    "6/30 ボストン","7/1 ニュージャージー","7/1 メキシコシティ","7/2 アトランタ",
+    "7/2 シアトル","7/2 SF湾岸","7/3 ロサンゼルス","7/3 トロント",
+    "7/3 バンクーバー","7/4 ダラス","7/4 マイアミ","7/4 カンザスシティ"
   ];
-  const L16=["A","B","C","D"], R16L=["G","H","I","J"], LQF=["E","F"], RQF=["K","L"];
+  const LBADGE16=["A","B","C","D"], RBADGE16=["G","H","I","J"];
+  const LBADGEQF=["E","F"], RBADGEQF=["K","L"];
   const COUNTS=[16,8,4,2,1], TOTAL=32;
 
-  let winners={}, names={}, editMode=false;
-  const SKEY="wc2026_bracket_v2";
+  let winners={},names={},editMode=false;
+  const SKEY="wc2026_bracket_v3";
   const save=()=>{try{localStorage.setItem(SKEY,JSON.stringify({winners,names}));}catch(e){}};
   const load=()=>{try{const o=JSON.parse(localStorage.getItem(SKEY)||"{}");if(o.winners)winners=o.winners;if(o.names)names=o.names;}catch(e){}};
   const nameOf=c=>names[c]||(TEAMS[c]&&TEAMS[c].n)||c;
-  const flagOf=c=>(TEAMS[c]&&TEAMS[c].f)||"🏳";
   const mid=(r,i)=>"r"+r+"m"+i;
 
-  function parts(r,i){
-    if(r===0) return R32[i].slice();
-    return [winners[mid(r-1,2*i)]||null, winners[mid(r-1,2*i+1)]||null];
-  }
-  function pick(r,i,code){
-    const p=parts(r,i); if(code!==p[0]&&code!==p[1])return;
-    if(winners[mid(r,i)]===code) delete winners[mid(r,i)]; else winners[mid(r,i)]=code;
-    recompute(); save(); render();
-  }
-  function loserOf(r,i){
-    const w=winners[mid(r,i)]; if(!w)return null;
-    const p=parts(r,i); if(p[0]==null||p[1]==null)return null;
-    return w===p[0]?p[1]:p[0];
-  }
+  function parts(r,i){if(r===0)return R32[i].slice();return[winners[mid(r-1,2*i)]||null,winners[mid(r-1,2*i+1)]||null];}
+  function pick(r,i,code){const p=parts(r,i);if(code!==p[0]&&code!==p[1])return;
+    if(winners[mid(r,i)]===code)delete winners[mid(r,i)];else winners[mid(r,i)]=code;recompute();save();render();}
+  function loserOf(r,i){const w=winners[mid(r,i)];if(!w)return null;const p=parts(r,i);if(!p[0]||!p[1])return null;return w===p[0]?p[1]:p[0];}
   const thirdParts=()=>[loserOf(3,0),loserOf(3,1)];
-  function pickThird(code){
-    const p=thirdParts(); if(code!==p[0]&&code!==p[1])return;
-    if(winners["third"]===code) delete winners["third"]; else winners["third"]=code;
-    recompute(); save(); render();
-  }
-  function recompute(){
-    let ch=true;
-    while(ch){ch=false;
-      for(let r=1;r<5;r++)for(let i=0;i<COUNTS[r];i++){
-        const w=winners[mid(r,i)]; if(!w)continue;
-        const p=parts(r,i); if(w!==p[0]&&w!==p[1]){delete winners[mid(r,i)];ch=true;}
-      }}
-    if(winners["third"]){const tp=thirdParts();
-      if(winners["third"]!==tp[0]&&winners["third"]!==tp[1]) delete winners["third"];}
-  }
-  function progress(){let d=0;
-    for(let r=0;r<5;r++)for(let i=0;i<COUNTS[r];i++)if(winners[mid(r,i)])d++;
-    if(winners["third"])d++; return d;}
+  function pickThird(code){const p=thirdParts();if(code!==p[0]&&code!==p[1])return;
+    if(winners["third"]===code)delete winners["third"];else winners["third"]=code;recompute();save();render();}
+  function recompute(){let ch=true;while(ch){ch=false;
+    for(let r=1;r<5;r++)for(let i=0;i<COUNTS[r];i++){const w=winners[mid(r,i)];if(!w)continue;
+      const p=parts(r,i);if(w!==p[0]&&w!==p[1]){delete winners[mid(r,i)];ch=true;}}}
+    if(winners["third"]){const tp=thirdParts();if(winners["third"]!==tp[0]&&winners["third"]!==tp[1])delete winners["third"];}}
+  function progress(){let d=0;for(let r=0;r<5;r++)for(let i=0;i<COUNTS[r];i++)if(winners[mid(r,i)])d++;if(winners["third"])d++;return d;}
 
-  const board=document.getElementById("board");
-  const linksSvg=document.getElementById("links");
-  let championEl=null, bronzeWhoEl=null;
+  const board=document.getElementById("board"),linksSvg=document.getElementById("links");
+  let championEl=null,bronzeWhoEl=null;
+
+  function flagImg(code,cls){
+    if(!code||!TEAMS[code])return '<span class="flag-ph"></span>';
+    return '<img class="flag'+(cls?" "+cls:"")+'" src="'+flagUrl(TEAMS[code].f)+'" alt="'+nameOf(code)+'" loading="lazy">';
+  }
 
   function makeMatch(r,i,opts){
-    const m=document.createElement("div"); m.className="match"+(opts.cls?(" "+opts.cls):"");
-    m.id=mid(r,i); m.dataset.side=opts.side;
+    const m=document.createElement("div");m.className="match";m.id=mid(r,i);m.dataset.side=opts.side||"L";
     if(opts.badge){const h=document.createElement("div");h.className="mhead";
-      h.innerHTML='<span class="badge">'+opts.badge+'</span>'; m.appendChild(h);}
+      h.innerHTML='<span class="badge">'+opts.badge+'</span>';m.appendChild(h);}
     for(let s=0;s<2;s++){const sl=document.createElement("div");sl.className="slot";sl.dataset.s=s;
-      if(opts.seeds)sl.dataset.seed=opts.seeds[s]; m.appendChild(sl);}
+      if(opts.seeds)sl.dataset.seed=opts.seeds[s];m.appendChild(sl);}
     if(opts.meta){const mt=document.createElement("div");mt.className="meta";mt.textContent=opts.meta;m.appendChild(mt);}
     return m;
   }
   function makeCol(cls,label,sub){
-    const c=document.createElement("div"); c.className="col "+cls;
-    c.innerHTML='<div class="collabel"><div class="cl-main">'+label+'</div>'+
-                (sub?'<div class="cl-sub">'+sub+'</div>':'')+'</div>';
-    const body=document.createElement("div"); body.className="col-body"; c.appendChild(body);
-    c._body=body; return c;
+    const c=document.createElement("div");c.className="col "+cls;
+    c.innerHTML='<div class="collabel"><div class="cl-main">'+label+'</div>'+(sub?'<div class="cl-sub">'+sub+'</div>':'')+'</div>';
+    const body=document.createElement("div");body.className="col-body";c.appendChild(body);c._body=body;return c;
   }
 
   function buildSkeleton(){
     [...board.querySelectorAll(".side,.center")].forEach(n=>n.remove());
 
-    // LEFT
-    const left=document.createElement("div"); left.className="side left";
-    const l32=makeCol("c32","ラウンド32","6/28〜7/3");
-    for(let i=0;i<8;i++) l32._body.appendChild(makeMatch(0,i,{side:"L",seeds:[2*i+1,2*i+2],meta:FIX[i]}));
+    // LEFT SIDE: R32(0-7) -> R16(0-3) -> QF(0-1) -> SF(0)
+    const left=document.createElement("div");left.className="side left";
+    const l32=makeCol("c32","ラウンド32","6/28〜7/1");
+    for(let i=0;i<8;i++) l32._body.appendChild(makeMatch(0,i,{side:"L",seeds:[i*2+1,i*2+2],meta:FIX[i]}));
     const l16=makeCol("c16","ラウンド16","7/4〜7/7");
-    for(let i=0;i<4;i++) l16._body.appendChild(makeMatch(1,i,{side:"L",badge:L16[i]}));
+    for(let i=0;i<4;i++) l16._body.appendChild(makeMatch(1,i,{side:"L",badge:LBADGE16[i]}));
     const lqf=makeCol("cqf","準々決勝","7/9〜7/11");
-    for(let i=0;i<2;i++) lqf._body.appendChild(makeMatch(2,i,{side:"L",badge:LQF[i]}));
-    const lsf=makeCol("csf","準決勝","7/14〜7/15");
+    for(let i=0;i<2;i++) lqf._body.appendChild(makeMatch(2,i,{side:"L",badge:LBADGEQF[i]}));
+    const lsf=makeCol("csf","準決勝","7/14");
     lsf._body.appendChild(makeMatch(3,0,{side:"L",badge:"M"}));
     left.append(l32,l16,lqf,lsf);
 
     // CENTER
-    const center=document.createElement("div"); center.className="center";
+    const center=document.createElement("div");center.className="center";
+    // Trophy SVG
+    const trophySvg=`<svg class="trophy-svg" viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f0d060"/><stop offset="50%" stop-color="#c8a22e"/><stop offset="100%" stop-color="#e8c84a"/></linearGradient>
+      <linearGradient id="tg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f5e080"/><stop offset="100%" stop-color="#b8922a"/></linearGradient></defs>
+      <path d="M30,18 Q30,6 50,6 Q70,6 70,18 L72,52 Q72,78 50,88 Q28,78 28,52Z" fill="url(#tg)" stroke="#a07820" stroke-width="1"/>
+      <path d="M22,18 Q10,20 8,36 Q6,50 22,52" fill="none" stroke="url(#tg2)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M78,18 Q90,20 92,36 Q94,50 78,52" fill="none" stroke="url(#tg2)" stroke-width="4" stroke-linecap="round"/>
+      <ellipse cx="50" cy="88" rx="10" ry="4" fill="#a07820"/>
+      <rect x="44" y="88" width="12" height="14" rx="2" fill="url(#tg2)" stroke="#a07820" stroke-width=".8"/>
+      <rect x="34" y="102" width="32" height="6" rx="2" fill="url(#tg)" stroke="#a07820" stroke-width=".8"/>
+      <rect x="30" y="108" width="40" height="8" rx="2" fill="url(#tg2)" stroke="#a07820" stroke-width=".8"/>
+      <ellipse cx="50" cy="42" rx="14" ry="18" fill="none" stroke="#f5e080" stroke-width="1.2" opacity=".5"/>
+      <text x="50" y="39" text-anchor="middle" font-size="7" font-weight="900" fill="#7a6018" font-family="sans-serif">FIFA</text>
+      <text x="50" y="48" text-anchor="middle" font-size="5" font-weight="800" fill="#7a6018" font-family="sans-serif">WORLD CUP</text>
+    </svg>`;
     center.innerHTML=
-      '<div class="trophy"><div class="cup">🏆</div>'+
-        '<div class="champion empty" id="champWho">優勝チーム</div></div>'+
+      '<div class="trophy-wrap" id="trophyWrap">'+trophySvg+
+        '<div class="champ-card"><div class="lbl">🏆 CHAMPION</div>'+
+        '<div class="winner empty" id="champWho">？</div></div></div>'+
       '<div class="match final-card" id="r4m0" data-side="C">'+
         '<div class="fc-head">決　勝</div>'+
-        '<div class="fc-venue">7/19（日）<br>メットライフ・スタジアム</div>'+
+        '<div class="fc-venue">7/19（日）<br>メットライフ・スタジアム（ニュージャージー）</div>'+
         '<div class="slot" data-s="0"></div><div class="slot" data-s="1"></div></div>'+
       '<div class="third-card">'+
         '<div class="tc-head">3位決定戦</div>'+
-        '<div class="tc-venue">7/18（土）<br>ハードロック・スタジアム</div>'+
+        '<div class="tc-venue">7/18（土）<br>ハードロック・スタジアム（マイアミ）</div>'+
         '<div class="slot3" data-s="0"></div><div class="slot3" data-s="1"></div>'+
-        '<div class="bronze" id="bronzePlate"><span class="b3">🥉</span>'+
+        '<div class="bronze" id="bronzePlate"><span style="font-size:14px">🥉</span>'+
           '<span class="who3 empty" id="bronzeWho">3位</span></div></div>';
 
-    // RIGHT
-    const right=document.createElement("div"); right.className="side right";
-    const rsf=makeCol("csf","準決勝","7/14〜7/15");
+    // RIGHT SIDE: SF(1) -> QF(2-3) -> R16(4-7) -> R32(8-15)
+    const right=document.createElement("div");right.className="side right";
+    const rsf=makeCol("csf","準決勝","7/15");
     rsf._body.appendChild(makeMatch(3,1,{side:"R",badge:"N"}));
     const rqf=makeCol("cqf","準々決勝","7/9〜7/11");
-    for(let k=0;k<2;k++) rqf._body.appendChild(makeMatch(2,2+k,{side:"R",badge:RQF[k]}));
+    for(let k=0;k<2;k++) rqf._body.appendChild(makeMatch(2,2+k,{side:"R",badge:RBADGEQF[k]}));
     const r16=makeCol("c16","ラウンド16","7/4〜7/7");
-    for(let k=0;k<4;k++) r16._body.appendChild(makeMatch(1,4+k,{side:"R",badge:R16L[k]}));
-    const r32=makeCol("c32","ラウンド32","6/28〜7/3");
+    for(let k=0;k<4;k++) r16._body.appendChild(makeMatch(1,4+k,{side:"R",badge:RBADGE16[k]}));
+    const r32=makeCol("c32","ラウンド32","6/28〜7/1");
     for(let k=0;k<8;k++){const i=8+k;
       r32._body.appendChild(makeMatch(0,i,{side:"R",seeds:[17+2*k,18+2*k],meta:FIX[i]}));}
     right.append(rsf,rqf,r16,r32);
@@ -348,56 +350,45 @@
   function chip(slot,r,i,code,opts){
     slot.innerHTML="";
     if(!code){const e=document.createElement("div");e.className="chip empty";
-      e.innerHTML='<span class="flag">⬡</span><span class="nm">'+(opts.ph||"勝者")+'</span>';
+      e.innerHTML='<span class="flag-ph"></span><span class="nm">'+(opts.ph||"勝者")+'</span>';
       slot.appendChild(e);return;}
     const w=opts.third?winners["third"]:winners[mid(r,i)];
     const isEdit=editMode&&r===0&&!opts.third;
-    const c=document.createElement(isEdit?"div":"button"); c.className="chip";
-    const t=TEAMS[code]||{}; if(t.jp)c.classList.add("jp");
-    if(opts.third){ if(w===code)c.classList.add("pick3"); else if(w)c.classList.add("out"); }
-    else { if(w===code)c.classList.add(opts.champ?"picked champ":"picked"); else if(w)c.classList.add("out"); }
+    const c=document.createElement(isEdit?"div":"button");c.className="chip";
+    const t=TEAMS[code]||{};if(t.jp)c.classList.add("jp");
+    if(opts.third){if(w===code)c.classList.add("pick3");else if(w)c.classList.add("out");}
+    else{if(w===code)c.classList.add(opts.champ?"picked champ":"picked");else if(w)c.classList.add("out");}
 
     if(isEdit){
-      const inp=document.createElement("input"); inp.value=nameOf(code); inp.setAttribute("aria-label","チーム名");
+      const inp=document.createElement("input");inp.value=nameOf(code);inp.setAttribute("aria-label","チーム名");
       inp.addEventListener("change",()=>{names[code]=inp.value.trim()||nameOf(code);save();render();});
       inp.addEventListener("keydown",e=>{if(e.key==="Enter")inp.blur();});
-      c.innerHTML=(opts.seed?'<span class="seed">'+opts.seed+'</span>':'')+'<span class="flag">'+flagOf(code)+'</span>';
-      c.appendChild(inp); slot.appendChild(c); return;
-    }
-    const markIcon = opts.third?(w===code?"🥉":"") : (w===code?(opts.champ?"👑":"✓"):"");
+      c.innerHTML=(opts.seed?'<span class="seed">'+opts.seed+'</span>':'')+flagImg(code);
+      c.appendChild(inp);slot.appendChild(c);return;}
+
+    const markIcon=opts.third?(w===code?"🥉":""):(w===code?(opts.champ?"👑":"✓"):"");
     c.innerHTML=(opts.seed?'<span class="seed">'+opts.seed+'</span>':'')+
-      '<span class="flag">'+flagOf(code)+'</span>'+
-      '<span class="nm">'+nameOf(code)+'</span>'+
-      '<span class="mark">'+markIcon+'</span>';
+      flagImg(code)+'<span class="nm">'+nameOf(code)+'</span><span class="mark">'+markIcon+'</span>';
     if(opts.third) attachThird(c,code); else attachDrag(c,r,i,code);
     slot.appendChild(c);
   }
 
-  function fillMatch(r,i){
-    const m=document.getElementById(mid(r,i)); if(!m)return;
-    const p=parts(r,i);
-    const slots=m.querySelectorAll(".slot");
-    const champ=(r===4);
-    for(let s=0;s<2;s++){
-      const seed=slots[s].dataset.seed;
-      chip(slots[s],r,i,p[s],{seed:seed,champ:champ,ph:"勝者"});
-    }
-  }
-
   function render(){
-    for(let r=0;r<5;r++)for(let i=0;i<COUNTS[r];i++) fillMatch(r,i);
-    // champion
+    for(let r=0;r<5;r++)for(let i=0;i<COUNTS[r];i++){
+      const m=document.getElementById(mid(r,i));if(!m)continue;
+      const p=parts(r,i),slots=m.querySelectorAll(".slot"),champ=(r===4);
+      for(let s=0;s<2;s++){const seed=slots[s].dataset.seed;
+        chip(slots[s],r,i,p[s],{seed:seed,champ:champ,ph:"勝者"});}
+    }
     const cmp=winners[mid(4,0)];
-    if(cmp){championEl.className="champion";championEl.innerHTML='<span class="flag" style="font-size:20px">'+flagOf(cmp)+'</span>'+nameOf(cmp);}
-    else{championEl.className="champion empty";championEl.textContent="優勝チーム";}
-    // third place
+    if(cmp){championEl.className="winner";championEl.innerHTML=flagImg(cmp)+' <span class="name">'+nameOf(cmp)+'</span>';}
+    else{championEl.className="winner empty";championEl.textContent="？";}
     const tp=thirdParts();
     [0,1].forEach(s=>{const sl=document.querySelector('.slot3[data-s="'+s+'"]');
-      if(sl) chip(sl,3,s,tp[s],{third:true,ph:"準決勝の敗者"});});
+      if(sl)chip(sl,3,s,tp[s],{third:true,ph:"準決勝の敗者"});});
     const bz=winners["third"];
-    if(bz){bronzeWhoEl.className="who3";bronzeWhoEl.innerHTML='<span class="b3">'+flagOf(bz)+'</span>'+nameOf(bz);}
+    if(bz){bronzeWhoEl.className="who3";bronzeWhoEl.innerHTML=flagImg(bz)+' '+nameOf(bz);}
     else{bronzeWhoEl.className="who3 empty";bronzeWhoEl.textContent="3位";}
-    // progress
     const d=progress();
     document.getElementById("pdone").textContent=d;
     document.getElementById("fill").style.width=(d/TOTAL*100)+"%";
@@ -405,134 +396,98 @@
     drawLinks();
   }
 
-  // ---- connectors (orthogonal, broadcast-style) ----
-  function lc(el){const b=board.getBoundingClientRect(),e=el.getBoundingClientRect();
-    return {x:e.left-b.left,y:e.top-b.top+e.height/2};}
-  function rc(el){const b=board.getBoundingClientRect(),e=el.getBoundingClientRect();
-    return {x:e.right-b.left,y:e.top-b.top+e.height/2};}
-  function tcen(el){const b=board.getBoundingClientRect(),e=el.getBoundingClientRect();
-    return {x:(e.left+e.right)/2-b.left,y:e.top-b.top};}
-  function bcen(el){const b=board.getBoundingClientRect(),e=el.getBoundingClientRect();
-    return {x:(e.left+e.right)/2-b.left,y:e.bottom-b.top};}
+  // ---- connectors ----
+  function lc(el){const b=board.getBoundingClientRect(),e=el.getBoundingClientRect();return{x:e.left-b.left,y:e.top-b.top+e.height/2};}
+  function rc(el){const b=board.getBoundingClientRect(),e=el.getBoundingClientRect();return{x:e.right-b.left,y:e.top-b.top+e.height/2};}
+  function tcen(el){const b=board.getBoundingClientRect(),e=el.getBoundingClientRect();return{x:(e.left+e.right)/2-b.left,y:e.top-b.top};}
+  function bcen(el){const b=board.getBoundingClientRect(),e=el.getBoundingClientRect();return{x:(e.left+e.right)/2-b.left,y:e.bottom-b.top};}
 
   function drawLinks(){
     const W=board.scrollWidth,H=board.scrollHeight;
-    linksSvg.setAttribute("width",W); linksSvg.setAttribute("height",H);
+    linksSvg.setAttribute("width",W);linksSvg.setAttribute("height",H);
     linksSvg.setAttribute("viewBox","0 0 "+W+" "+H);
     let d="";
-    const elbow=(o,inn)=>{const mx=(o.x+inn.x)/2;
-      d+="M"+o.x+" "+o.y+" H"+mx+" V"+inn.y+" H"+inn.x+" ";};
+    const elbow=(a,b)=>{const mx=(a.x+b.x)/2;d+="M"+a.x+" "+a.y+" H"+mx+" V"+b.y+" H"+b.x+" ";};
     for(let r=0;r<4;r++)for(let i=0;i<COUNTS[r];i++){
-      const ch=document.getElementById(mid(r,i)), pa=document.getElementById(mid(r+1,Math.floor(i/2)));
+      const ch=document.getElementById(mid(r,i)),pa=document.getElementById(mid(r+1,Math.floor(i/2)));
       if(!ch||!pa)continue;
       const L=ch.dataset.side==="L";
-      elbow(L?rc(ch):lc(ch), L?lc(pa):rc(pa));
+      elbow(L?rc(ch):lc(ch),L?lc(pa):rc(pa));
     }
-    // final -> trophy, final -> third
-    const fin=document.getElementById("r4m0"), tro=board.querySelector(".trophy"), thr=board.querySelector(".third-card");
+    const fin=document.getElementById("r4m0"),tro=document.getElementById("trophyWrap"),thr=board.querySelector(".third-card");
     if(fin&&tro){const a=bcen(tro),b=tcen(fin);d+="M"+a.x+" "+a.y+" L"+b.x+" "+b.y+" ";}
     if(fin&&thr){const a=bcen(fin),b=tcen(thr);d+="M"+a.x+" "+a.y+" L"+b.x+" "+b.y+" ";}
-    linksSvg.innerHTML='<path d="'+d+'" fill="none" stroke="#9fb0cc" stroke-width="2" '+
-      'stroke-linecap="round" stroke-linejoin="round"/>';
+    linksSvg.innerHTML='<path d="'+d+'" fill="none" stroke="#9fb0cc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
   }
 
-  // ---- drag + tap ----
+  // ---- drag ----
   let drag=null;
   function startDrag(c,e,onPick,getTarget,code){
-    if(editMode)return; e.preventDefault();
+    if(editMode)return;e.preventDefault();
     drag={c,onPick,getTarget,code,sx:e.clientX,sy:e.clientY,moved:false,ghost:null,target:null,over:false,pid:e.pointerId};
-    try{c.setPointerCapture(e.pointerId);}catch(_){}
-  }
+    try{c.setPointerCapture(e.pointerId);}catch(_){}}
   function moveDrag(c,e){
-    if(!drag||drag.c!==c)return;
-    if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<7)return;
+    if(!drag||drag.c!==c)return;if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<7)return;
     drag.moved=true;
     if(!drag.ghost){const g=document.createElement("div");g.className="ghost";
-      g.innerHTML='<span class="flag">'+flagOf(drag.code)+'</span>'+nameOf(drag.code);
+      g.innerHTML=flagImg(drag.code)+' '+nameOf(drag.code);
       document.body.appendChild(g);drag.ghost=g;c.classList.add("dragging");}
-    drag.ghost.style.left=e.clientX+"px"; drag.ghost.style.top=e.clientY+"px";
-    const tgt=drag.getTarget();
-    const overEl=document.elementFromPoint(e.clientX,e.clientY);
+    drag.ghost.style.left=e.clientX+"px";drag.ghost.style.top=e.clientY+"px";
+    const tgt=drag.getTarget();const overEl=document.elementFromPoint(e.clientX,e.clientY);
     const over=tgt&&overEl&&tgt.contains(overEl);
     if(drag.target&&drag.target!==tgt)drag.target.classList.remove("target");
-    drag.target=tgt; drag.over=over; if(tgt)tgt.classList.toggle("target",!!over);
-  }
+    drag.target=tgt;drag.over=over;if(tgt)tgt.classList.toggle("target",!!over);}
   function endDrag(c){
-    if(!drag||drag.c!==c)return;
-    const cl=drag; if(cl.ghost)cl.ghost.remove();
-    c.classList.remove("dragging"); if(cl.target)cl.target.classList.remove("target");
-    try{c.releasePointerCapture(cl.pid);}catch(_){}
-    drag=null;
-    if(!cl.moved||cl.over) cl.onPick();
-  }
+    if(!drag||drag.c!==c)return;const cl=drag;if(cl.ghost)cl.ghost.remove();
+    c.classList.remove("dragging");if(cl.target)cl.target.classList.remove("target");
+    try{c.releasePointerCapture(cl.pid);}catch(_){}drag=null;if(!cl.moved||cl.over)cl.onPick();}
   function attachDrag(c,r,i,code){
-    const getTarget=()=> r<4 ? document.getElementById(mid(r+1,Math.floor(i/2))) : board.querySelector(".trophy");
-    c.addEventListener("pointerdown",e=>startDrag(c,e,()=>pick(r,i,code),getTarget,code));
+    const gt=()=>r<4?document.getElementById(mid(r+1,Math.floor(i/2))):document.getElementById("trophyWrap");
+    c.addEventListener("pointerdown",e=>startDrag(c,e,()=>pick(r,i,code),gt,code));
     c.addEventListener("pointermove",e=>moveDrag(c,e));
-    c.addEventListener("pointerup",()=>endDrag(c));
-    c.addEventListener("pointercancel",()=>endDrag(c));
-    c.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick(r,i,code);}});
-  }
+    c.addEventListener("pointerup",()=>endDrag(c));c.addEventListener("pointercancel",()=>endDrag(c));
+    c.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick(r,i,code);}});}
   function attachThird(c,code){
-    const getTarget=()=>document.getElementById("bronzePlate");
-    c.addEventListener("pointerdown",e=>startDrag(c,e,()=>pickThird(code),getTarget,code));
+    const gt=()=>document.getElementById("bronzePlate");
+    c.addEventListener("pointerdown",e=>startDrag(c,e,()=>pickThird(code),gt,code));
     c.addEventListener("pointermove",e=>moveDrag(c,e));
-    c.addEventListener("pointerup",()=>endDrag(c));
-    c.addEventListener("pointercancel",()=>endDrag(c));
-    c.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pickThird(code);}});
-  }
+    c.addEventListener("pointerup",()=>endDrag(c));c.addEventListener("pointercancel",()=>endDrag(c));
+    c.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pickThird(code);}});}
 
   // ---- toolbar ----
   function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");
     clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),1700);}
-
-  // ---- zoom control ----
-  const sheet=document.getElementById("sheet");
-  const wrap=document.getElementById("wrap");
-  let zoom=100; // percentage
-  const setZoom=(pct)=>{
-    zoom=Math.max(40,Math.min(200,pct));
-    sheet.style.transform="scale("+zoom/100+")";
+  const sheet=document.getElementById("sheet"),wrap=document.getElementById("wrap");
+  let zoom=100;
+  const setZoom=(pct)=>{zoom=Math.max(30,Math.min(200,pct));
+    sheet.style.transform="scale("+(zoom/100)+")";
     document.getElementById("zoomLevel").textContent=zoom+"%";
-  };
+    setTimeout(drawLinks,50);};
   document.getElementById("fitBtn").addEventListener("click",()=>{
-    const wrapW=wrap.clientWidth-36; // minus padding
-    const targetZoom=Math.floor((wrapW/1680)*100);
-    setZoom(targetZoom);
-    wrap.scrollLeft=0;
-    toast("全体表示に調整しました");
-  });
+    const wrapW=wrap.clientWidth-28;setZoom(Math.floor((wrapW/1640)*100));
+    wrap.scrollLeft=0;toast("全体表示");});
   document.getElementById("zoomIn").addEventListener("click",()=>setZoom(zoom+10));
   document.getElementById("zoomOut").addEventListener("click",()=>setZoom(zoom-10));
-
-  // ---- other toolbar buttons ----
   document.getElementById("editBtn").addEventListener("click",e=>{
-    editMode=!editMode; e.currentTarget.setAttribute("aria-pressed",editMode);
+    editMode=!editMode;e.currentTarget.setAttribute("aria-pressed",editMode);
     e.currentTarget.textContent=editMode?"編集を終える":"チーム名を編集";
-    render(); toast(editMode?"編集モード：ラウンド32の国名を直せます":"予想モードに戻りました");
-  });
+    render();toast(editMode?"編集モード":"予想モード");});
   document.getElementById("resetBtn").addEventListener("click",()=>{
-    if(confirm("予想をすべてリセットしますか？（チーム名の編集は残ります）")){
-      winners={}; save(); render(); toast("予想をリセットしました");}
-  });
+    if(confirm("予想をすべてリセットしますか？")){winners={};save();render();toast("リセットしました");}});
   document.getElementById("pngBtn").addEventListener("click",async()=>{
-    if(typeof html2canvas!=="function"){toast("画像化ライブラリを読み込めませんでした");return;}
-    if(editMode){editMode=false;render();}
-    toast("画像を生成中…");
-    const origTransform=sheet.style.transform;
-    sheet.style.transform="scale(1)"; // reset zoom for export
-    try{
-      const cv=await html2canvas(sheet,{backgroundColor:"#ffffff",scale:2,
-        width:1680,height:sheet.scrollHeight,windowWidth:1680});
+    if(typeof html2canvas!=="function"){toast("画像化ライブラリなし");return;}
+    if(editMode){editMode=false;render();}toast("画像を生成中…");
+    const orig=sheet.style.transform;sheet.style.transform="scale(1)";
+    await new Promise(r=>setTimeout(r,100));
+    try{const cv=await html2canvas(sheet,{backgroundColor:"#ffffff",scale:2,useCORS:true,
+      width:1640,height:sheet.scrollHeight,windowWidth:1640});
       const a=document.createElement("a");a.download="wc2026-yosou.png";a.href=cv.toDataURL("image/png");a.click();
-      toast("PNGを保存しました（高解像度）");
-    }catch(err){toast("画像生成に失敗しました");}
-    finally{sheet.style.transform=origTransform;}
-  });
-  let rt; window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(drawLinks,120);});
+      toast("PNG保存完了");}catch(err){toast("画像生成失敗");}
+    finally{sheet.style.transform=orig;}});
+  let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(drawLinks,120);});
 
-  load(); recompute(); buildSkeleton(); render();
-  window.addEventListener("load",()=>setTimeout(drawLinks,80));
+  load();recompute();buildSkeleton();render();
+  window.addEventListener("load",()=>setTimeout(drawLinks,100));
 })();
 </script>
 </body>
