@@ -154,8 +154,9 @@
     <span id="zoomLevel" style="min-width:32px;text-align:center;font-size:11px;color:#666;font-weight:700">100%</span>
     <button class="btn" id="zoomIn">＋</button>
   </div>
-  <button class="btn" id="shareBtn" style="background:var(--navy);color:#fff;border-color:var(--navy)">📤 画像付き共有</button>
-  <button class="btn" id="copyBtn">📋 テキストコピー</button>
+  <button class="btn" id="lineBtn" style="background:#06C755;color:#fff;border-color:#06C755">LINE 画像共有</button>
+  <button class="btn" id="xBtn" style="background:#000;color:#fff;border-color:#000">𝕏 テキスト共有</button>
+  <button class="btn" id="copyBtn">📋 コピー</button>
   <button class="btn warn" id="resetBtn">リセット</button>
 </div>
 
@@ -182,7 +183,7 @@
     </div>
     <div class="foot">
       <div><span class="big">全64試合</span>　2026年6月11日（木）〜7月19日（日）</div>
-      <div>※表記の日時はすべて日本時間。予想は自動保存。「画像で保存」でPNG化。</div>
+      <div>※表記の日時はすべて日本時間。予想は自動保存。</div>
       <div style="display:flex;gap:12px;align-items:center">
         <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:16px;height:11px;border-radius:2px;background:var(--navy);display:inline-block"></span>北中米開催</span>
         <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:16px;height:11px;border-radius:2px;background:var(--green);display:inline-block"></span>その他開催</span>
@@ -459,76 +460,89 @@
   document.getElementById("resetBtn").addEventListener("click",()=>{
     if(confirm("予想をすべてリセットしますか？")){winners={};save();render();toast("リセットしました");}});
 
-  // ---- share helpers ----
+  // ---- share ----
   const PAGE_URL="https://as9source.github.io/wc2026/wc2026-bracket.html";
   function getRunnerUp(){
     const w=winners[mid(4,0)]; if(!w)return null;
     const p=parts(4,0); if(!p[0]||!p[1])return null;
     return w===p[0]?p[1]:p[0];
   }
-  function podiumText(){
-    const cmp=winners[mid(4,0)],ru=getRunnerUp(),bz=winners["third"];
-    let lines=[];
-    if(cmp) lines.push("🥇 優勝："+nameOf(cmp));
-    if(ru)  lines.push("🥈 準優勝："+nameOf(ru));
-    if(bz)  lines.push("🥉 3位："+nameOf(bz));
-    return lines;
-  }
   function buildShareText(){
     const RNAMES=["ベスト32","ベスト16","準々決勝","準決勝","決勝"];
+    const cmp=winners[mid(4,0)],ru=getRunnerUp(),bz=winners["third"];
     let lines=["⚽ W杯2026 決勝トーナメント予想 ⚽",""];
     for(let r=0;r<5;r++){
       const picks=[];
       for(let i=0;i<COUNTS[r];i++){const w=winners[mid(r,i)];if(w)picks.push(nameOf(w));}
       if(picks.length>0) lines.push("【"+RNAMES[r]+"】"+picks.join("、"));
     }
-    const pod=podiumText();
-    if(pod.length>0) lines.push("",pod.join("\n"));
+    if(cmp||ru||bz) lines.push("");
+    if(cmp) lines.push("🥇 優勝："+nameOf(cmp));
+    if(ru)  lines.push("🥈 準優勝："+nameOf(ru));
+    if(bz)  lines.push("🥉 3位："+nameOf(bz));
     lines.push("","▶ あなたも予想してみて！",PAGE_URL);
     return lines.join("\n");
   }
+  function copyText(text){
+    try{navigator.clipboard.writeText(text);}
+    catch(e){const ta=document.createElement("textarea");ta.value=text;ta.style.cssText="position:fixed;opacity:0";
+      document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();}
+  }
 
-  // generate PNG blob
-  async function generatePNG(){
+  // トーナメント表をPNG画像化
+  async function captureImage(){
     if(typeof html2canvas!=="function") return null;
     const orig=sheet.style.transform; sheet.style.transform="scale(1)";
-    await new Promise(r=>setTimeout(r,120));
+    await new Promise(r=>setTimeout(r,150));
     try{
-      const cv=await html2canvas(sheet,{backgroundColor:"#ffffff",scale:2,useCORS:true,
-        width:1640,height:sheet.scrollHeight,windowWidth:1640});
-      return await new Promise(resolve=>cv.toBlob(resolve,"image/png"));
+      const cv=await html2canvas(sheet,{backgroundColor:"#fff",scale:2,useCORS:true,
+        width:1640,height:sheet.scrollHeight,windowWidth:1640,
+        logging:false,removeContainer:true});
+      return await new Promise(res=>cv.toBlob(res,"image/png"));
     }catch(e){return null;}
     finally{sheet.style.transform=orig;}
   }
 
-  // 📤 画像付き共有 (one button)
-  document.getElementById("shareBtn").addEventListener("click",async()=>{
-    toast("画像を生成中…");
-    const blob=await generatePNG();
+  // LINE：画像＋テキストで共有
+  document.getElementById("lineBtn").addEventListener("click",async()=>{
+    toast("画像を作成中…");
+    const blob=await captureImage();
     const text=buildShareText();
-    // mobile: Web Share API with image file
-    if(blob && navigator.canShare && navigator.canShare({files:[new File([blob],"x.png",{type:"image/png"})]})){
-      try{
-        const file=new File([blob],"wc2026-yosou.png",{type:"image/png"});
-        await navigator.share({text:text,files:[file]});
-        toast("共有しました"); return;
-      }catch(e){if(e.name==="AbortError"){toast("");return;}}
+    // スマホ：Web Share APIで画像ごと共有シートへ
+    if(blob && navigator.canShare){
+      const file=new File([blob],"wc2026-yosou.png",{type:"image/png"});
+      if(navigator.canShare({files:[file]})){
+        try{
+          await navigator.share({text:text,files:[file]});
+          toast("共有しました"); return;
+        }catch(e){if(e.name==="AbortError")return;}
+      }
     }
-    // PC fallback: download image + copy text
+    // PC：画像ダウンロード＋LINEテキスト共有を別タブで開く
     if(blob){
       const a=document.createElement("a");a.download="wc2026-yosou.png";
-      a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);
+      a.href=URL.createObjectURL(blob);a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),1000);
     }
-    try{await navigator.clipboard.writeText(text);}catch(e){}
-    toast(blob?"画像をダウンロード＋テキストをコピーしました":"テキストをコピーしました");
+    window.open("https://line.me/R/share?text="+encodeURIComponent(text),"_blank");
+    toast(blob?"画像をダウンロードしました。LINEで添付してください":"");
   });
 
-  // 📋 テキストコピー
-  document.getElementById("copyBtn").addEventListener("click",async()=>{
-    const text=buildShareText();
-    try{await navigator.clipboard.writeText(text);toast("コピーしました");}
-    catch(e){const ta=document.createElement("textarea");ta.value=text;ta.style.cssText="position:fixed;opacity:0";
-      document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();toast("コピーしました");}
+  // X：テキスト＋URL（X APIなしでは画像添付不可）
+  document.getElementById("xBtn").addEventListener("click",()=>{
+    const cmp=winners[mid(4,0)],ru=getRunnerUp(),bz=winners["third"];
+    let lines=["⚽ W杯2026 決勝トーナメント予想"];
+    if(cmp) lines.push("🥇 優勝："+nameOf(cmp));
+    if(ru)  lines.push("🥈 準優勝："+nameOf(ru));
+    if(bz)  lines.push("🥉 3位："+nameOf(bz));
+    if(!cmp&&!ru&&!bz) lines.push("予想してみて！");
+    lines.push(PAGE_URL);
+    window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(lines.join("\n")),"_blank");
+  });
+
+  // コピー
+  document.getElementById("copyBtn").addEventListener("click",()=>{
+    copyText(buildShareText()); toast("コピーしました");
   });
   let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(drawLinks,120);});
 
