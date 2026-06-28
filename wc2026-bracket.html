@@ -138,6 +138,14 @@
     color:#fff;font-size:13px;font-weight:700;padding:9px 15px;border-radius:8px;opacity:0;
     transition:.25s;z-index:60;pointer-events:none}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.85);
+    flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
+  .overlay.show{display:flex}
+  .overlay img{max-width:95%;max-height:70vh;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  .overlay .hint{color:#fff;font-size:13px;text-align:center;line-height:1.6}
+  .overlay .hint b{color:#06C755}
+  .overlay .close{background:#fff;color:#000;border:none;font:inherit;font-size:14px;font-weight:700;
+    border-radius:8px;padding:10px 20px;cursor:pointer}
   @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -183,6 +191,7 @@
       <svg class="links" id="links" aria-hidden="true"></svg>
     </div>
     <div class="foot">
+      <div style="width:100%;text-align:center;font-size:14px;font-weight:800;color:var(--navy)">▶ あなたも予想してみてね！　国名をタップ／ドラッグで勝者を選ぼう</div>
       <div><span class="big">全64試合</span>　2026年6月11日（木）〜7月19日（日）</div>
       <div>※表記の日時はすべて日本時間。予想は自動保存。</div>
       <div style="display:flex;gap:12px;align-items:center">
@@ -193,6 +202,14 @@
   </div>
 </div>
 
+<div class="overlay" id="imgOverlay">
+  <img id="overlayImg" src="" alt="予想画像">
+  <div class="hint">
+    <b>iPhone</b>：画像を長押し →「"写真"に追加」<br>
+    <b>Android</b>：画像を長押し →「画像をダウンロード」
+  </div>
+  <button class="close" id="overlayClose">閉じる</button>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -481,7 +498,7 @@
     if(cmp) lines.push("🥇 優勝："+nameOf(cmp));
     if(ru)  lines.push("🥈 準優勝："+nameOf(ru));
     if(bz)  lines.push("🥉 3位："+nameOf(bz));
-    lines.push("","▶ あなたも予想してみて！",PAGE_URL);
+    lines.push("","▶ あなたも予想してみてね！",PAGE_URL);
     return lines.join("\n");
   }
   function copyText(text){
@@ -546,16 +563,24 @@
     copyText(buildShareText()); toast("コピーしました");
   });
 
-  // 画像保存（ダウンロード）
+  // 画像保存（オーバーレイ表示 → 長押しで写真保存 or ダウンロード）
+  const overlay=document.getElementById("imgOverlay");
+  const overlayImg=document.getElementById("overlayImg");
+  document.getElementById("overlayClose").addEventListener("click",()=>overlay.classList.remove("show"));
+  overlay.addEventListener("click",e=>{if(e.target===overlay)overlay.classList.remove("show");});
+
   document.getElementById("saveBtn").addEventListener("click",async()=>{
     toast("画像を作成中…");
     const blob=await captureImage();
-    if(blob){
-      const a=document.createElement("a");a.download="wc2026-yosou.png";
-      a.href=URL.createObjectURL(blob);a.click();
-      setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-      toast("ダウンロードフォルダに保存しました");
-    }else{toast("画像の作成に失敗しました");}
+    if(!blob){toast("画像の作成に失敗しました");return;}
+    const url=URL.createObjectURL(blob);
+    overlayImg.src=url;
+    overlay.classList.add("show");
+    toast("");
+    // PCではダウンロードも同時に行う
+    if(!/iPhone|iPad|Android/i.test(navigator.userAgent)){
+      const a=document.createElement("a");a.download="wc2026-yosou.png";a.href=url;a.click();
+    }
   });
   let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(drawLinks,120);});
 
