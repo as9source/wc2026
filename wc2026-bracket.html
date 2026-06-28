@@ -521,29 +521,26 @@
     finally{sheet.style.transform=orig;}
   }
 
-  // LINE：画像＋テキストで共有
+  // LINE：画像だけ共有
   document.getElementById("lineBtn").addEventListener("click",async()=>{
     toast("画像を作成中…");
     const blob=await captureImage();
-    const text=buildShareText();
-    // スマホ：Web Share APIで画像ごと共有シートへ
-    if(blob && navigator.canShare){
+    if(!blob){toast("画像の作成に失敗しました");return;}
+    // スマホ：Web Share APIで画像だけ共有シートへ
+    if(navigator.canShare){
       const file=new File([blob],"wc2026-yosou.png",{type:"image/png"});
       if(navigator.canShare({files:[file]})){
         try{
-          await navigator.share({text:text,files:[file]});
+          await navigator.share({files:[file]});
           toast("共有しました"); return;
         }catch(e){if(e.name==="AbortError")return;}
       }
     }
-    // PC：画像ダウンロード＋LINEテキスト共有を別タブで開く
-    if(blob){
-      const a=document.createElement("a");a.download="wc2026-yosou.png";
-      a.href=URL.createObjectURL(blob);a.click();
-      setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-    }
-    window.open("https://line.me/R/share?text="+encodeURIComponent(text),"_blank");
-    toast(blob?"画像をダウンロードしました。LINEで添付してください":"");
+    // PC：画像ダウンロード → LINEで手動添付
+    const a=document.createElement("a");a.download="wc2026-yosou.png";
+    a.href=URL.createObjectURL(blob);a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    toast("画像をダウンロードしました。LINEに添付してください");
   });
 
   // X：テキスト＋URL（X APIなしでは画像添付不可）
@@ -554,7 +551,7 @@
     if(ru)  lines.push("🥈 準優勝："+nameOf(ru));
     if(bz)  lines.push("🥉 3位："+nameOf(bz));
     if(!cmp&&!ru&&!bz) lines.push("予想してみて！");
-    lines.push(PAGE_URL);
+    lines.push("","▶ あなたも予想してみてね！",PAGE_URL);
     window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(lines.join("\n")),"_blank");
   });
 
