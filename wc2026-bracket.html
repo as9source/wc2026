@@ -138,15 +138,18 @@
     color:#fff;font-size:13px;font-weight:700;padding:9px 15px;border-radius:8px;opacity:0;
     transition:.25s;z-index:60;pointer-events:none}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-  .overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.85);
-    flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
-  .overlay.show{display:flex}
-  .overlay img{max-width:95%;max-height:70vh;border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
-  .overlay .hint{color:#fff;font-size:13px;text-align:center;line-height:1.6}
-  .overlay .hint b{color:#06C755}
-  .overlay .close{background:#fff;color:#000;border:none;font:inherit;font-size:14px;font-weight:700;
-    border-radius:8px;padding:10px 20px;cursor:pointer}
   @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media print{
+    .controls,.overlay,.toast{display:none!important}
+    html,body{background:#fff!important}
+    .wrap{overflow:visible!important;padding:0!important}
+    .sheet{width:100%!important;transform:none!important;border:none!important;box-shadow:none!important;border-radius:0!important}
+    .board{gap:16px!important;padding:12px 8px!important}
+    .chip{font-size:11px!important;padding:4px 5px!important}
+    .chip .flag{width:18px!important;height:13px!important}
+    .topbar{padding:10px 14px!important}
+    .ttl h1{font-size:20px!important}
+  }
 </style>
 </head>
 <body>
@@ -164,7 +167,7 @@
   </div>
   <button class="btn" id="lineBtn" style="background:#06C755;color:#fff;border-color:#06C755">LINE 画像共有</button>
   <button class="btn" id="xBtn" style="background:#000;color:#fff;border-color:#000">𝕏 テキスト共有</button>
-  <button class="btn" id="saveBtn">📷 画像保存</button>
+  <button class="btn" id="pdfBtn">📄 PDF保存</button>
   <button class="btn" id="copyBtn">📋 コピー</button>
   <button class="btn warn" id="resetBtn">リセット</button>
 </div>
@@ -202,14 +205,6 @@
   </div>
 </div>
 
-<div class="overlay" id="imgOverlay">
-  <img id="overlayImg" src="" alt="予想画像">
-  <div class="hint">
-    <b>iPhone</b>：画像を長押し →「"写真"に追加」<br>
-    <b>Android</b>：画像を長押し →「画像をダウンロード」
-  </div>
-  <button class="close" id="overlayClose">閉じる</button>
-</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -508,16 +503,17 @@
   }
 
   // トーナメント表をPNG画像化
+  const isMobile=/iPhone|iPad|Android/i.test(navigator.userAgent);
   async function captureImage(){
     if(typeof html2canvas!=="function") return null;
     const orig=sheet.style.transform; sheet.style.transform="scale(1)";
-    await new Promise(r=>setTimeout(r,150));
+    await new Promise(r=>setTimeout(r,200));
     try{
-      const cv=await html2canvas(sheet,{backgroundColor:"#fff",scale:2,useCORS:true,
+      const cv=await html2canvas(sheet,{backgroundColor:"#fff",scale:isMobile?1:2,useCORS:true,
         width:1640,height:sheet.scrollHeight,windowWidth:1640,
         logging:false,removeContainer:true});
       return await new Promise(res=>cv.toBlob(res,"image/png"));
-    }catch(e){return null;}
+    }catch(e){console.error(e);return null;}
     finally{sheet.style.transform=orig;}
   }
 
@@ -560,24 +556,10 @@
     copyText(buildShareText()); toast("コピーしました");
   });
 
-  // 画像保存（オーバーレイ表示 → 長押しで写真保存 or ダウンロード）
-  const overlay=document.getElementById("imgOverlay");
-  const overlayImg=document.getElementById("overlayImg");
-  document.getElementById("overlayClose").addEventListener("click",()=>overlay.classList.remove("show"));
-  overlay.addEventListener("click",e=>{if(e.target===overlay)overlay.classList.remove("show");});
-
-  document.getElementById("saveBtn").addEventListener("click",async()=>{
-    toast("画像を作成中…");
-    const blob=await captureImage();
-    if(!blob){toast("画像の作成に失敗しました");return;}
-    const url=URL.createObjectURL(blob);
-    overlayImg.src=url;
-    overlay.classList.add("show");
-    toast("");
-    // PCではダウンロードも同時に行う
-    if(!/iPhone|iPad|Android/i.test(navigator.userAgent)){
-      const a=document.createElement("a");a.download="wc2026-yosou.png";a.href=url;a.click();
-    }
+  // PDF保存
+  document.getElementById("pdfBtn").addEventListener("click",()=>{
+    const orig=sheet.style.transform; sheet.style.transform="none";
+    setTimeout(()=>{window.print();sheet.style.transform=orig;},200);
   });
   let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(drawLinks,120);});
 
