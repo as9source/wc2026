@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FIFAワールドカップ2026 決勝トーナメント予想</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
     --navy:#13265c; --navy2:#1c3a73; --navy-deep:#0a1638;
@@ -166,9 +165,8 @@
     <span id="zoomLevel" style="min-width:32px;text-align:center;font-size:11px;color:#666;font-weight:700">100%</span>
     <button class="btn" id="zoomIn">＋</button>
   </div>
-  <button class="btn" id="lineBtn" style="background:#06C755;color:#fff;border-color:#06C755">LINE PDF共有</button>
-  <button class="btn" id="xBtn" style="background:#000;color:#fff;border-color:#000">𝕏 テキスト共有</button>
   <button class="btn" id="saveBtn">📷 画像保存</button>
+  <button class="btn" id="xBtn" style="background:#000;color:#fff;border-color:#000">𝕏 共有</button>
   <button class="btn" id="copyBtn">📋 コピー</button>
   <button class="btn warn" id="resetBtn">リセット</button>
 </div>
@@ -196,6 +194,7 @@
     </div>
     <div class="foot">
       <div style="width:100%;text-align:center;font-size:14px;font-weight:800;color:var(--navy)">▶ あなたも予想してみてね！　国名をタップ／ドラッグで勝者を選ぼう</div>
+      <div style="width:100%;text-align:center;font-size:12px;color:var(--muted)">スマホで共有：全体表示 → スクショ → LINEに貼るのが一番簡単！</div>
       <div><span class="big">全64試合</span>　2026年6月11日（木）〜7月19日（日）</div>
       <div>※表記の日時はすべて日本時間。予想は自動保存。</div>
       <div style="display:flex;gap:12px;align-items:center">
@@ -503,54 +502,25 @@
       document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();}
   }
 
-  // トーナメント表をPNG画像化
-  const isMobile=/iPhone|iPad|Android/i.test(navigator.userAgent);
-  async function captureImage(){
-    if(typeof html2canvas!=="function") return null;
-    const orig=sheet.style.transform; sheet.style.transform="scale(1)";
-    await new Promise(r=>setTimeout(r,200));
-    try{
-      const cv=await html2canvas(sheet,{backgroundColor:"#fff",scale:isMobile?1:2,useCORS:true,
-        width:1640,height:sheet.scrollHeight,windowWidth:1640,
-        logging:false,removeContainer:true});
-      return await new Promise(res=>cv.toBlob(res,"image/png"));
-    }catch(e){console.error(e);return null;}
-    finally{sheet.style.transform=orig;}
-  }
-
-  // LINE：PDFで共有
-  document.getElementById("lineBtn").addEventListener("click",async()=>{
-    toast("PDFを作成中…");
-    const blob=await captureImage();
-    if(!blob){toast("作成に失敗しました");return;}
-    // canvas→PDF変換
-    const img=new Image();
-    const url=URL.createObjectURL(blob);
-    img.src=url;
-    await new Promise(r=>{img.onload=r;});
-    const {jsPDF}=window.jspdf;
-    const pdf=new jsPDF({orientation:img.width>img.height?"l":"p",unit:"px",format:[img.width/2,img.height/2]});
-    pdf.addImage(img,0,0,img.width/2,img.height/2);
-    const pdfBlob=pdf.output("blob");
-    URL.revokeObjectURL(url);
-    // スマホ：Web Share APIでPDFを共有シートへ
-    if(navigator.canShare){
-      const file=new File([pdfBlob],"wc2026-yosou.pdf",{type:"application/pdf"});
-      if(navigator.canShare({files:[file]})){
-        try{
-          await navigator.share({files:[file]});
-          toast("共有しました"); return;
-        }catch(e){if(e.name==="AbortError")return;}
-      }
+  // 画像保存（PCはダウンロード、スマホはスクショ案内）
+  document.getElementById("saveBtn").addEventListener("click",async()=>{
+    if(/iPhone|iPad|Android/i.test(navigator.userAgent)){
+      toast("スマホは「全体表示」→ スクショで保存してください"); return;
     }
-    // PC：PDFダウンロード
-    const a=document.createElement("a");a.download="wc2026-yosou.pdf";
-    a.href=URL.createObjectURL(pdfBlob);a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-    toast("PDFをダウンロードしました");
+    toast("画像を作成中…");
+    const orig=sheet.style.transform; sheet.style.transform="scale(1)";
+    await new Promise(r=>setTimeout(r,150));
+    try{
+      const cv=await html2canvas(sheet,{backgroundColor:"#fff",scale:2,useCORS:true,
+        width:1640,height:sheet.scrollHeight,windowWidth:1640,logging:false});
+      const a=document.createElement("a");a.download="wc2026-yosou.png";
+      a.href=cv.toDataURL("image/png");a.click();
+      toast("ダウンロードフォルダに保存しました");
+    }catch(e){toast("画像の作成に失敗しました");}
+    finally{sheet.style.transform=orig;}
   });
 
-  // X：テキスト＋URL（X APIなしでは画像添付不可）
+  // X：テキスト＋URL
   document.getElementById("xBtn").addEventListener("click",()=>{
     const cmp=winners[mid(4,0)],ru=getRunnerUp(),bz=winners["third"];
     let lines=["⚽ W杯2026 決勝トーナメント予想"];
@@ -565,17 +535,6 @@
   // コピー
   document.getElementById("copyBtn").addEventListener("click",()=>{
     copyText(buildShareText()); toast("コピーしました");
-  });
-
-  // 画像保存（ダウンロード）
-  document.getElementById("saveBtn").addEventListener("click",async()=>{
-    toast("画像を作成中…");
-    const blob=await captureImage();
-    if(!blob){toast("作成に失敗しました");return;}
-    const a=document.createElement("a");a.download="wc2026-yosou.png";
-    a.href=URL.createObjectURL(blob);a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-    toast("ダウンロードしました");
   });
   let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(drawLinks,120);});
 
