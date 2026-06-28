@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>2026 ワールドカップ 決勝トーナメント予想</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{
+    --bg:#0c1a22; --bg2:#0a151b; --panel:#13262f; --panel2:#19323d;
+    --line:#5a747e; --line-soft:#334b54; --ink:#e9f1f2; --ink-dim:#9bb1b8;
+    --gold:#e7b24a; --gold-deep:#c8922f; --teal:#3fcfb6; --teal-deep:#1f8f7d;
+    --card-w:192px; --gap-x:66px;
+    --rad:11px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:
+      radial-gradient(120% 80% at 50% -10%, #11242e 0%, var(--bg) 45%, var(--bg2) 100%);
+      color:var(--ink);
+      font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+      -webkit-font-smoothing:antialiased;}
+  /* faint pitch markings */
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.05;
+    background:
+      linear-gradient(transparent 49.6%, var(--line) 49.6%, var(--line) 50.4%, transparent 50.4%),
+      radial-gradient(circle at 50% 50%, transparent 78px, var(--line) 78px, var(--line) 80px, transparent 80px);
+    background-size:100% 100%, 100% 100%;}
+
+  header{padding:18px 20px 6px;max-width:1400px;margin:0 auto}
+  .kicker{font-size:11px;letter-spacing:.32em;color:var(--teal);font-weight:700;margin:0 0 6px}
+  h1{margin:0;font-size:clamp(20px,3.2vw,30px);font-weight:800;letter-spacing:.01em;line-height:1.15}
+  h1 .yr{color:var(--gold)}
+  .sub{margin:7px 0 0;color:var(--ink-dim);font-size:13px;line-height:1.5}
+  .sub b{color:var(--ink);font-weight:600}
+
+  .bar{position:sticky;top:0;z-index:30;margin:14px auto 0;max-width:1400px;
+    display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+    padding:10px 16px;border-radius:13px;
+    background:rgba(13,28,35,.82);backdrop-filter:blur(9px);
+    border:1px solid var(--line-soft)}
+  .prog{display:flex;align-items:center;gap:10px;margin-right:auto}
+  .prog .meter{width:124px;height:7px;border-radius:99px;background:#0b1a21;border:1px solid var(--line-soft);overflow:hidden}
+  .prog .fill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--gold));transition:width .35s ease}
+  .prog .txt{font-size:12px;color:var(--ink-dim);font-variant-numeric:tabular-nums}
+  .prog .txt b{color:var(--ink);font-weight:700}
+  button.btn{font:inherit;font-size:12.5px;font-weight:700;color:var(--ink);cursor:pointer;
+    background:var(--panel);border:1px solid var(--line-soft);border-radius:9px;padding:8px 13px;
+    transition:border-color .15s, background .15s, transform .05s}
+  button.btn:hover{border-color:var(--line);background:var(--panel2)}
+  button.btn:active{transform:translateY(1px)}
+  button.btn[aria-pressed="true"]{border-color:var(--teal);color:var(--teal);background:rgba(63,207,182,.08)}
+  button.btn.warn:hover{border-color:var(--gold);color:var(--gold)}
+
+  .hint{max-width:1400px;margin:9px auto 0;padding:0 20px;color:var(--ink-dim);font-size:11.5px;display:flex;gap:14px;flex-wrap:wrap}
+  .hint span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:9px;height:9px;border-radius:3px;display:inline-block;border:1px solid}
+  .dot.j{border-color:var(--teal);background:rgba(63,207,182,.25)}
+  .dot.g{border-color:var(--gold);background:rgba(231,178,74,.25)}
+  .dot.u{border-color:var(--ink-dim);background:transparent;border-style:dashed}
+
+  .scroll{overflow:auto;padding:10px 20px 56px;-webkit-overflow-scrolling:touch}
+  .board{position:relative;display:flex;gap:var(--gap-x);align-items:stretch;
+    min-width:max-content;margin:0 auto;padding:8px 4px}
+  svg.links{position:absolute;left:0;top:0;pointer-events:none;z-index:0;overflow:visible}
+
+  .round{position:relative;z-index:1;display:flex;flex-direction:column;justify-content:space-around;
+    width:var(--card-w);flex:0 0 var(--card-w)}
+  .rlabel{position:sticky;top:64px;text-align:center;font-size:10.5px;letter-spacing:.22em;
+    font-weight:800;color:var(--ink-dim);margin-bottom:2px}
+  .rlabel.final{color:var(--gold)}
+
+  .match{position:relative;margin:7px 0;border-radius:var(--rad);
+    background:linear-gradient(180deg,var(--panel),#10222b);
+    border:1px solid var(--line-soft);padding:5px;
+    box-shadow:0 1px 0 rgba(255,255,255,.02) inset, 0 6px 16px rgba(0,0,0,.22)}
+  .match.target{border-color:var(--teal);box-shadow:0 0 0 2px rgba(63,207,182,.35),0 8px 20px rgba(0,0,0,.3)}
+  .meta{font-size:9.5px;color:var(--ink-dim);text-align:center;padding:2px 2px 4px;letter-spacing:.02em;line-height:1.3}
+  .meta .vs{color:var(--line)}
+
+  .slot{display:block}
+  .slot + .slot{margin-top:4px}
+  .chip{position:relative;width:100%;display:flex;align-items:center;gap:8px;
+    border-radius:8px;border:1px solid var(--line-soft);background:var(--panel2);
+    color:var(--ink);font:inherit;font-size:13px;font-weight:600;text-align:left;
+    padding:8px 9px;cursor:grab;touch-action:none;user-select:none;
+    transition:border-color .14s, background .14s, opacity .18s, transform .05s}
+  .chip:hover{border-color:var(--line)}
+  .chip .flag{font-size:15px;line-height:1;filter:saturate(1.05)}
+  .chip .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chip .mark{width:16px;text-align:center;font-size:12px;color:var(--ink-dim)}
+  .chip.empty{cursor:default;color:var(--line);font-weight:500;background:transparent;border-style:dashed}
+  .chip.empty .flag{opacity:.35}
+  .chip.picked{border-color:var(--gold);background:linear-gradient(180deg,rgba(231,178,74,.16),rgba(231,178,74,.05))}
+  .chip.picked .mark{color:var(--gold)}
+  .chip.out{opacity:.4}
+  .chip.jp{box-shadow:0 0 0 1px rgba(63,207,182,.4) inset}
+  .chip.unc::after{content:"*";color:var(--gold);font-weight:800;margin-left:2px}
+  .chip.dragging{opacity:.25}
+  .chip:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+  .editing .chip{cursor:default}
+  .chip input{font:inherit;font-size:13px;font-weight:600;color:var(--ink);background:#0c1a21;
+    border:1px solid var(--teal);border-radius:5px;padding:3px 5px;width:100%}
+
+  .ghost{position:fixed;z-index:999;pointer-events:none;display:flex;align-items:center;gap:8px;
+    padding:9px 12px;border-radius:9px;font-size:13px;font-weight:700;color:#10222b;
+    background:linear-gradient(180deg,#f0d488,var(--gold));border:1px solid var(--gold-deep);
+    box-shadow:0 12px 26px rgba(0,0,0,.45);transform:translate(-50%,-130%) rotate(-2.5deg)}
+
+  /* champion column */
+  .champ{display:flex;flex-direction:column;justify-content:center;align-items:center;
+    width:212px;flex:0 0 212px}
+  .trophy{width:100%;border-radius:15px;padding:18px 14px 16px;text-align:center;
+    background:linear-gradient(180deg,#1a3340,#11242d);border:1px solid var(--gold-deep);
+    box-shadow:0 0 0 1px rgba(231,178,74,.15),0 14px 34px rgba(0,0,0,.4)}
+  .trophy .cup{font-size:34px;line-height:1}
+  .trophy .lab{font-size:10px;letter-spacing:.3em;color:var(--gold);font-weight:800;margin:8px 0 10px}
+  .trophy .who{display:flex;align-items:center;justify-content:center;gap:9px;
+    min-height:30px;font-size:18px;font-weight:800;color:var(--ink)}
+  .trophy .who.empty{color:var(--line);font-weight:600;font-size:15px}
+  .trophy .who .flag{font-size:22px}
+
+  footer{max-width:1400px;margin:0 auto;padding:4px 20px 30px;color:var(--ink-dim);font-size:11px;line-height:1.6}
+  footer a{color:var(--teal)}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+    background:var(--panel2);border:1px solid var(--line);color:var(--ink);font-size:13px;font-weight:600;
+    padding:10px 16px;border-radius:10px;opacity:0;transition:opacity .25s,transform .25s;z-index:60;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media (max-width:560px){ header{padding:14px 14px 4px} .scroll{padding:10px 12px 50px} .bar{padding:9px 11px} }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">FIFA WORLD CUP 2026 · KNOCKOUT</p>
+  <h1><span class="yr">2026</span> ワールドカップ 決勝トーナメント予想</h1>
+  <p class="sub">ノックアウトステージ（ベスト32〜決勝）。<b>国名チップをドラッグ</b>して次のラウンドへ＝勝者予想。<b>タップでも</b>選べます。予想は自動保存。</p>
+</header>
+
+<div class="bar">
+  <div class="prog">
+    <div class="meter"><div class="fill" id="fill"></div></div>
+    <div class="txt">予想 <b id="pdone">0</b>/<span id="ptot">31</span></div>
+  </div>
+  <button class="btn" id="editBtn" aria-pressed="false">チーム名を編集</button>
+  <button class="btn" id="pngBtn">画像で保存</button>
+  <button class="btn warn" id="resetBtn">リセット</button>
+</div>
+
+<div class="hint">
+  <span><i class="dot g"></i>予想した勝者</span>
+  <span><i class="dot j"></i>日本（推し）</span>
+  <span><i class="dot u"></i>全16カード確定済み（2026/6/28）</span>
+</div>
+
+<div class="scroll" id="scroll">
+  <div class="board" id="board">
+    <svg class="links" id="links" aria-hidden="true"></svg>
+    <!-- rounds injected by JS -->
+  </div>
+</div>
+
+<footer>
+  組み合わせは2026/6/28時点で全16カード確定。時刻は日本時間（JST）。
+  結果が違っていた場合や表記を変えたいときは「チーム名を編集」でベスト32の国名を直せます。
+  予想結果は「画像で保存」でPNG化してXなどへ。
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---- team table (code -> japanese name + flag) ----
+  const TEAMS = {
+    GER:{n:"ドイツ",f:"🇩🇪"}, PAR:{n:"パラグアイ",f:"🇵🇾"},
+    FRA:{n:"フランス",f:"🇫🇷"}, SWE:{n:"スウェーデン",f:"🇸🇪"},
+    RSA:{n:"南アフリカ",f:"🇿🇦"}, CAN:{n:"カナダ",f:"🇨🇦"},
+    NED:{n:"オランダ",f:"🇳🇱"}, MAR:{n:"モロッコ",f:"🇲🇦"},
+    POR:{n:"ポルトガル",f:"🇵🇹"}, CRO:{n:"クロアチア",f:"🇭🇷"},
+    ESP:{n:"スペイン",f:"🇪🇸"}, AUT:{n:"オーストリア",f:"🇦🇹"},
+    USA:{n:"アメリカ",f:"🇺🇸"}, BIH:{n:"ボスニア",f:"🇧🇦"},
+    BEL:{n:"ベルギー",f:"🇧🇪"}, SEN:{n:"セネガル",f:"🇸🇳"},
+    BRA:{n:"ブラジル",f:"🇧🇷"}, JPN:{n:"日本",f:"🇯🇵",jp:true},
+    CIV:{n:"コートジボワール",f:"🇨🇮"}, NOR:{n:"ノルウェー",f:"🇳🇴"},
+    MEX:{n:"メキシコ",f:"🇲🇽"}, ECU:{n:"エクアドル",f:"🇪🇨"},
+    ENG:{n:"イングランド",f:"🏴󠁧󠁢󠁥󠁮󠁧󠁿"}, COD:{n:"コンゴ民主共和国",f:"🇨🇩"},
+    ARG:{n:"アルゼンチン",f:"🇦🇷"}, CPV:{n:"カーボベルデ",f:"🇨🇻"},
+    EGY:{n:"エジプト",f:"🇪🇬"}, AUS:{n:"オーストラリア",f:"🇦🇺"},
+    SUI:{n:"スイス",f:"🇨🇭"}, ALG:{n:"アルジェリア",f:"🇩🇿"},
+    COL:{n:"コロンビア",f:"🇨🇴"}, GHA:{n:"ガーナ",f:"🇬🇭"}
+  };
+
+  // round of 32, ordered top->bottom so winners pair up consecutively
+  const R32 = [
+    ["GER","PAR"], ["FRA","SWE"], ["RSA","CAN"], ["NED","MAR"],
+    ["POR","CRO"], ["ESP","AUT"], ["USA","BIH"], ["BEL","SEN"],
+    ["BRA","JPN"], ["CIV","NOR"], ["MEX","ECU"], ["ENG","COD"],
+    ["ARG","CPV"], ["EGY","AUS"], ["SUI","ALG"], ["COL","GHA"]
+  ];
+  // fixtures (JST) per R32 index
+  const FIX = [
+    "6/30 05:30 ボストン","7/1 06:00 NY",   "6/29 04:00 LA",      "6/30 10:00 モンテレイ",
+    "7/3 08:00 トロント","7/3 04:00 LA",     "7/2 09:00 SF湾岸",   "7/2 05:00 シアトル",
+    "6/30 02:00 ヒューストン","7/1 02:00 ダラス","7/1 10:00 メキシコシティ","7/2 01:00 アトランタ",
+    "7/4 07:00 マイアミ","7/4 03:00 ダラス",  "7/3 12:00 バンクーバー","7/4 10:30 カンザス"
+  ];
+  const RLABELS = ["ベスト32","ベスト16","準々決勝","準決勝","決勝"];
+  const COUNTS  = [16,8,4,2,1];
+  const TOTAL_MATCHES = 31;
+
+  // ---- state ----
+  let winners = {};                 // matchId -> teamCode
+  let names = {};                   // teamCode -> overridden japanese name
+  let editMode = false;
+
+  const SKEY = "wc2026_bracket_v1";
+  function save(){ try{ localStorage.setItem(SKEY, JSON.stringify({winners,names})); }catch(e){} }
+  function load(){ try{ const o=JSON.parse(localStorage.getItem(SKEY)||"{}");
+      if(o.winners) winners=o.winners; if(o.names) names=o.names; }catch(e){} }
+
+  const nameOf = c => (names[c] || (TEAMS[c]&&TEAMS[c].n) || c);
+  const flagOf = c => (TEAMS[c]&&TEAMS[c].f) || "🏳";
+  const mid = (r,i) => "r"+r+"m"+i;
+
+  // participants of a match -> [codeOrNull, codeOrNull]
+  function parts(r,i){
+    if(r===0) return R32[i].slice();
+    return [ winners[mid(r-1,2*i)]||null, winners[mid(r-1,2*i+1)]||null ];
+  }
+
+  // pick winner of match (r,i) = team code
+  function pick(r,i,code){
+    const p = parts(r,i);
+    if(code!==p[0] && code!==p[1]) return;
+    if(winners[mid(r,i)]===code){ delete winners[mid(r,i)]; } // tap same = unpick
+    else winners[mid(r,i)] = code;
+    recompute(); save(); render();
+  }
+  // remove any winners that are no longer valid participants (cascade up)
+  function recompute(){
+    let changed=true;
+    while(changed){
+      changed=false;
+      for(let r=1;r<5;r++) for(let i=0;i<COUNTS[r];i++){
+        const w=winners[mid(r,i)]; if(!w) continue;
+        const p=parts(r,i);
+        if(w!==p[0] && w!==p[1]){ delete winners[mid(r,i)]; changed=true; }
+      }
+    }
+  }
+  function progress(){
+    let done=0;
+    for(let r=0;r<5;r++) for(let i=0;i<COUNTS[r];i++) if(winners[mid(r,i)]) done++;
+    return done;
+  }
+
+  // ---- build DOM ----
+  const board=document.getElementById("board");
+  const linksSvg=document.getElementById("links");
+  let championEl=null;
+
+  function buildSkeleton(){
+    // remove old rounds (keep svg)
+    [...board.querySelectorAll(".round,.champ")].forEach(n=>n.remove());
+    for(let r=0;r<5;r++){
+      const col=document.createElement("div"); col.className="round"; col.dataset.r=r;
+      const lab=document.createElement("div"); lab.className="rlabel"+(r===4?" final":"");
+      lab.textContent=RLABELS[r]; col.appendChild(lab);
+      for(let i=0;i<COUNTS[r];i++){
+        const m=document.createElement("div"); m.className="match"; m.id=mid(r,i); m.dataset.r=r; m.dataset.i=i;
+        if(r===0){ const mt=document.createElement("div"); mt.className="meta"; mt.textContent=FIX[i]; m.appendChild(mt); }
+        for(let s=0;s<2;s++){
+          const slot=document.createElement("div"); slot.className="slot"; slot.dataset.s=s; m.appendChild(slot);
+        }
+        col.appendChild(m);
+      }
+      board.appendChild(col);
+    }
+    // champion column
+    const champ=document.createElement("div"); champ.className="champ";
+    champ.innerHTML='<div class="rlabel final">優勝予想</div>'+
+      '<div class="trophy"><div class="cup">🏆</div><div class="lab">CHAMPION</div>'+
+      '<div class="who empty" id="champWho">？</div></div>';
+    board.appendChild(champ);
+    championEl=champ.querySelector("#champWho");
+  }
+
+  function chipEl(r,i,s,code){
+    const m=document.getElementById(mid(r,i));
+    const slot=m.querySelector('.slot[data-s="'+s+'"]');
+    slot.innerHTML="";
+    const c=document.createElement(editMode&&r===0?"div":"button");
+    c.className="chip";
+    if(!code){ c.className+=" empty"; c.innerHTML='<span class="flag">⬡</span><span class="nm">勝者待ち</span>'; slot.appendChild(c); return; }
+    const t=TEAMS[code]||{};
+    if(t.jp) c.classList.add("jp");
+    if(t.unc && !names[code]) c.classList.add("unc");
+    const w=winners[mid(r,i)];
+    if(w===code) c.classList.add("picked");
+    else if(w) c.classList.add("out");
+
+    if(editMode && r===0){
+      const inp=document.createElement("input");
+      inp.value=nameOf(code); inp.setAttribute("aria-label","チーム名");
+      inp.addEventListener("change",()=>{ names[code]=inp.value.trim()||nameOf(code); save(); render(); });
+      inp.addEventListener("keydown",e=>{ if(e.key==="Enter") inp.blur(); });
+      c.innerHTML='<span class="flag">'+flagOf(code)+'</span>';
+      c.appendChild(inp); slot.appendChild(c); return;
+    }
+
+    c.innerHTML='<span class="flag">'+flagOf(code)+'</span>'+
+      '<span class="nm">'+nameOf(code)+'</span>'+
+      '<span class="mark">'+(w===code?"✓":"")+'</span>';
+    c.dataset.code=code; c.dataset.r=r; c.dataset.i=i;
+    attachDrag(c,r,i,code);
+    slot.appendChild(c);
+  }
+
+  function render(){
+    for(let r=0;r<5;r++) for(let i=0;i<COUNTS[r];i++){
+      const p=parts(r,i);
+      chipEl(r,i,0,p[0]); chipEl(r,i,1,p[1]);
+    }
+    // champion
+    const champ=winners[mid(4,0)];
+    if(champ){ championEl.className="who"; championEl.innerHTML='<span class="flag">'+flagOf(champ)+'</span>'+nameOf(champ); }
+    else{ championEl.className="who empty"; championEl.textContent="？"; }
+    // progress
+    const d=progress();
+    document.getElementById("pdone").textContent=d;
+    document.getElementById("fill").style.width=(d/TOTAL_MATCHES*100)+"%";
+    document.body.classList.toggle("editing",editMode);
+    drawLinks();
+  }
+
+  // ---- connectors (measured, chalk curves) ----
+  function center(el,which){ // which: 'r' right-center, 'l' left-center
+    const b=board.getBoundingClientRect();
+    const e=el.getBoundingClientRect();
+    const x=(which==='r'? e.right : e.left)-b.left+board.scrollLeft;
+    const y=e.top-b.top+board.scrollTop+e.height/2;
+    return {x,y};
+  }
+  function drawLinks(){
+    const W=board.scrollWidth, H=board.scrollHeight;
+    linksSvg.setAttribute("width",W); linksSvg.setAttribute("height",H);
+    linksSvg.setAttribute("viewBox","0 0 "+W+" "+H);
+    let d="";
+    for(let r=0;r<4;r++) for(let i=0;i<COUNTS[r];i++){
+      const from=document.getElementById(mid(r,i));
+      const to=document.getElementById(mid(r+1,Math.floor(i/2)));
+      if(!from||!to) continue;
+      const a=center(from,'r'), b=center(to,'l');
+      const mx=(a.x+b.x)/2;
+      d+="M"+a.x+" "+a.y+" C"+mx+" "+a.y+" "+mx+" "+b.y+" "+b.x+" "+b.y+" ";
+    }
+    // final -> trophy
+    const fin=document.getElementById(mid(4,0)), tro=board.querySelector(".trophy");
+    if(fin&&tro){ const a=center(fin,'r'),b=center(tro,'l'); const mx=(a.x+b.x)/2;
+      d+="M"+a.x+" "+a.y+" C"+mx+" "+a.y+" "+mx+" "+b.y+" "+b.x+" "+b.y+" "; }
+    linksSvg.innerHTML='<path d="'+d+'" fill="none" stroke="var(--line-soft)" stroke-width="1.6" '+
+      'stroke-linecap="round" opacity="0.9"/>';
+  }
+
+  // ---- drag + tap to pick ----
+  let drag=null;
+  function attachDrag(c,r,i,code){
+    c.addEventListener("pointerdown",e=>{
+      if(editMode) return;
+      e.preventDefault();
+      const startX=e.clientX,startY=e.clientY;
+      drag={c,r,i,code,startX,startY,moved:false,ghost:null,target:null,pid:e.pointerId};
+      try{c.setPointerCapture(e.pointerId);}catch(_){}
+    });
+    c.addEventListener("pointermove",e=>{
+      if(!drag||drag.c!==c) return;
+      const dx=e.clientX-drag.startX, dy=e.clientY-drag.startY;
+      if(!drag.moved && Math.hypot(dx,dy)<7) return;
+      drag.moved=true;
+      if(!drag.ghost){
+        const g=document.createElement("div"); g.className="ghost";
+        g.innerHTML='<span class="flag">'+flagOf(code)+'</span>'+nameOf(code);
+        document.body.appendChild(g); drag.ghost=g; c.classList.add("dragging");
+      }
+      drag.ghost.style.left=e.clientX+"px"; drag.ghost.style.top=e.clientY+"px";
+      // target = match this one feeds into (or trophy if final)
+      const tgt = r<4 ? document.getElementById(mid(r+1,Math.floor(i/2)))
+                      : board.querySelector(".trophy");
+      const prev=drag.target;
+      const overEl=document.elementFromPoint(e.clientX,e.clientY);
+      const over = tgt && overEl && tgt.contains(overEl);
+      if(prev && prev!==tgt) prev.classList.remove("target");
+      drag.target=tgt;
+      if(tgt) tgt.classList.toggle("target",!!over);
+      drag.over=over;
+    });
+    const finish=e=>{
+      if(!drag||drag.c!==c) return;
+      const cl=drag;
+      if(cl.ghost) cl.ghost.remove();
+      c.classList.remove("dragging");
+      if(cl.target) cl.target.classList.remove("target");
+      try{c.releasePointerCapture(cl.pid);}catch(_){}
+      drag=null;
+      if(!cl.moved){ pick(r,i,code); }          // tap
+      else if(cl.over){ pick(r,i,code); }        // dropped on correct target
+    };
+    c.addEventListener("pointerup",finish);
+    c.addEventListener("pointercancel",finish);
+    c.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); pick(r,i,code);} });
+  }
+
+  // ---- toolbar ----
+  function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg;
+    t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),1700); }
+
+  document.getElementById("editBtn").addEventListener("click",e=>{
+    editMode=!editMode; e.currentTarget.setAttribute("aria-pressed",editMode);
+    e.currentTarget.textContent=editMode?"編集を終える":"チーム名を編集";
+    render(); toast(editMode?"編集モード：ベスト32の国名を直せます":"予想モードに戻りました");
+  });
+  document.getElementById("resetBtn").addEventListener("click",()=>{
+    if(confirm("予想をすべてリセットしますか？（チーム名の編集は残ります）")){
+      winners={}; save(); render(); toast("予想をリセットしました");
+    }
+  });
+  document.getElementById("pngBtn").addEventListener("click",async()=>{
+    if(typeof html2canvas!=="function"){ toast("画像化ライブラリを読み込めませんでした（オフライン？）"); return; }
+    const wasEdit=editMode; if(wasEdit){ editMode=false; render(); }
+    toast("画像を生成中…");
+    try{
+      const cv=await html2canvas(board,{backgroundColor:"#0c1a22",scale:2,
+        width:board.scrollWidth,height:board.scrollHeight,windowWidth:board.scrollWidth});
+      const a=document.createElement("a"); a.download="wc2026-yosou.png"; a.href=cv.toDataURL("image/png"); a.click();
+      toast("PNGを保存しました");
+    }catch(err){ toast("画像生成に失敗しました"); }
+  });
+
+  let rt; window.addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(drawLinks,120); });
+
+  // ---- init ----
+  load(); recompute(); buildSkeleton(); render();
+  window.addEventListener("load",()=>setTimeout(drawLinks,60));
+})();
+</script>
+</body>
+</html>
