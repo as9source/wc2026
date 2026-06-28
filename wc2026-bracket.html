@@ -530,12 +530,11 @@
     if(!cmp&&!ru&&!bz) lines.push("予想してみて！");
     lines.push("","▶ あなたも予想してみてね！",PAGE_URL);
     const text=lines.join("\n");
-    // スマホ：共有シートからXアプリを選べる（ログイン不要）
-    if(navigator.share){
+    const mobile=/iPhone|iPad|Android/i.test(navigator.userAgent);
+    if(mobile && navigator.share){
       try{await navigator.share({text:text});return;}
       catch(e){if(e.name==="AbortError")return;}
     }
-    // PC：ブラウザでツイート画面を開く
     window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(text),"_blank");
   });
 
