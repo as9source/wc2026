@@ -158,7 +158,10 @@
     <button class="btn" id="zoomIn">＋</button>
   </div>
   <button class="btn" id="editBtn" aria-pressed="false">チーム名を編集</button>
-  <button class="btn" id="pngBtn">📷 画像で保存</button>
+  <button class="btn" id="lineBtn" style="background:#06C755;color:#fff;border-color:#06C755">LINE</button>
+  <button class="btn" id="xBtn" style="background:#000;color:#fff;border-color:#000">𝕏</button>
+  <button class="btn" id="copyBtn">📋 コピー</button>
+  <button class="btn" id="pngBtn">📷 画像保存</button>
   <button class="btn warn" id="resetBtn">リセット</button>
 </div>
 
@@ -474,6 +477,45 @@
     render();toast(editMode?"編集モード":"予想モード");});
   document.getElementById("resetBtn").addEventListener("click",()=>{
     if(confirm("予想をすべてリセットしますか？")){winners={};save();render();toast("リセットしました");}});
+
+  // ---- share (LINE / X / copy) ----
+  const PAGE_URL="https://as9source.github.io/wc2026/wc2026-bracket.html";
+  function buildShareText(){
+    const RNAMES=["ベスト32","ベスト16","準々決勝","準決勝","決勝"];
+    let lines=["⚽ W杯2026 決勝トーナメント予想 ⚽",""];
+    for(let r=0;r<5;r++){
+      const picks=[];
+      for(let i=0;i<COUNTS[r];i++){const w=winners[mid(r,i)];if(w)picks.push(nameOf(w));}
+      if(picks.length>0) lines.push("【"+RNAMES[r]+"】"+picks.join("、"));
+    }
+    const cmp=winners[mid(4,0)]; if(cmp) lines.push("","🏆 優勝予想："+nameOf(cmp));
+    const bz=winners["third"]; if(bz) lines.push("🥉 3位予想："+nameOf(bz));
+    lines.push("","▶ あなたも予想してみて！",PAGE_URL);
+    return lines.join("\n");
+  }
+  function shareTextShort(){
+    const cmp=winners[mid(4,0)],bz=winners["third"];
+    let lines=["⚽ W杯2026 決勝トーナメント予想"];
+    if(cmp) lines.push("🏆 優勝："+nameOf(cmp));
+    if(bz) lines.push("🥉 3位："+nameOf(bz));
+    if(!cmp&&!bz) lines.push("予想してみて！");
+    lines.push(PAGE_URL);
+    return lines.join("\n");
+  }
+  document.getElementById("lineBtn").addEventListener("click",()=>{
+    window.open("https://line.me/R/share?text="+encodeURIComponent(buildShareText()),"_blank");
+  });
+  document.getElementById("xBtn").addEventListener("click",()=>{
+    window.open("https://twitter.com/intent/tweet?text="+encodeURIComponent(shareTextShort()),"_blank");
+  });
+  document.getElementById("copyBtn").addEventListener("click",async()=>{
+    const text=buildShareText();
+    try{await navigator.clipboard.writeText(text);toast("コピーしました");}
+    catch(e){const ta=document.createElement("textarea");ta.value=text;ta.style.cssText="position:fixed;opacity:0";
+      document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();toast("コピーしました");}
+  });
+
+  // ---- PNG save ----
   document.getElementById("pngBtn").addEventListener("click",async()=>{
     if(typeof html2canvas!=="function"){toast("画像化ライブラリなし");return;}
     if(editMode){editMode=false;render();}toast("画像を生成中…");
