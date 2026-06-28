@@ -92,9 +92,6 @@
   .chip.jp.picked{box-shadow:inset 0 0 0 1px var(--navy)}
   .chip.dragging{opacity:.2}
   .chip:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
-  .editing .chip{cursor:default}
-  .chip input{font:inherit;font-size:12px;font-weight:700;color:var(--ink);background:#fff;
-    border:1px solid var(--navy);border-radius:3px;padding:2px 4px;width:100%}
 
   /* ---- center: trophy / final / third ---- */
   .trophy-wrap{text-align:center;margin-bottom:6px}
@@ -157,11 +154,8 @@
     <span id="zoomLevel" style="min-width:32px;text-align:center;font-size:11px;color:#666;font-weight:700">100%</span>
     <button class="btn" id="zoomIn">＋</button>
   </div>
-  <button class="btn" id="editBtn" aria-pressed="false">チーム名を編集</button>
-  <button class="btn" id="lineBtn" style="background:#06C755;color:#fff;border-color:#06C755">LINE</button>
-  <button class="btn" id="xBtn" style="background:#000;color:#fff;border-color:#000">𝕏</button>
-  <button class="btn" id="copyBtn">📋 コピー</button>
-  <button class="btn" id="pngBtn">📷 画像保存</button>
+  <button class="btn" id="shareBtn" style="background:var(--navy);color:#fff;border-color:var(--navy)">📤 画像付き共有</button>
+  <button class="btn" id="copyBtn">📋 テキストコピー</button>
   <button class="btn warn" id="resetBtn">リセット</button>
 </div>
 
@@ -242,7 +236,7 @@
   const LBADGEQF=["E","F"], RBADGEQF=["K","L"];
   const COUNTS=[16,8,4,2,1], TOTAL=32;
 
-  let winners={},names={},editMode=false;
+  let winners={},names={};
   const SKEY="wc2026_bracket_v4";
   const save=()=>{try{localStorage.setItem(SKEY,JSON.stringify({winners,names}));}catch(e){}};
   const load=()=>{try{const o=JSON.parse(localStorage.getItem(SKEY)||"{}");if(o.winners)winners=o.winners;if(o.names)names=o.names;}catch(e){}};
@@ -356,18 +350,10 @@
       e.innerHTML='<span class="flag-ph"></span><span class="nm">'+(opts.ph||"勝者")+'</span>';
       slot.appendChild(e);return;}
     const w=opts.third?winners["third"]:winners[mid(r,i)];
-    const isEdit=editMode&&r===0&&!opts.third;
-    const c=document.createElement(isEdit?"div":"button");c.className="chip";
+    const c=document.createElement("button");c.className="chip";
     const t=TEAMS[code]||{};if(t.jp)c.classList.add("jp");
     if(opts.third){if(w===code)c.classList.add("pick3");else if(w)c.classList.add("out");}
     else{if(w===code){c.classList.add("picked");if(opts.champ)c.classList.add("champ");}else if(w)c.classList.add("out");}
-
-    if(isEdit){
-      const inp=document.createElement("input");inp.value=nameOf(code);inp.setAttribute("aria-label","チーム名");
-      inp.addEventListener("change",()=>{names[code]=inp.value.trim()||nameOf(code);save();render();});
-      inp.addEventListener("keydown",e=>{if(e.key==="Enter")inp.blur();});
-      c.innerHTML=(opts.seed?'<span class="seed">'+opts.seed+'</span>':'')+flagImg(code);
-      c.appendChild(inp);slot.appendChild(c);return;}
 
     const markIcon=opts.third?(w===code?"🥉":""):(w===code?(opts.champ?"👑":"✓"):"");
     c.innerHTML=(opts.seed?'<span class="seed">'+opts.seed+'</span>':'')+
@@ -395,7 +381,6 @@
     const d=progress();
     document.getElementById("pdone").textContent=d;
     document.getElementById("fill").style.width=(d/TOTAL*100)+"%";
-    document.body.classList.toggle("editing",editMode);
     drawLinks();
   }
 
@@ -426,7 +411,7 @@
   // ---- drag ----
   let drag=null;
   function startDrag(c,e,onPick,getTarget,code){
-    if(editMode)return;e.preventDefault();
+    e.preventDefault();
     drag={c,onPick,getTarget,code,sx:e.clientX,sy:e.clientY,moved:false,ghost:null,target:null,over:false,pid:e.pointerId};
     try{c.setPointerCapture(e.pointerId);}catch(_){}}
   function moveDrag(c,e){
@@ -471,10 +456,6 @@
     wrap.scrollLeft=0;toast("全体表示");});
   document.getElementById("zoomIn").addEventListener("click",()=>setZoom(zoom+10));
   document.getElementById("zoomOut").addEventListener("click",()=>setZoom(zoom-10));
-  document.getElementById("editBtn").addEventListener("click",e=>{
-    editMode=!editMode;e.currentTarget.setAttribute("aria-pressed",editMode);
-    e.currentTarget.textContent=editMode?"編集を終える":"チーム名を編集";
-    render();toast(editMode?"編集モード":"予想モード");});
   document.getElementById("resetBtn").addEventListener("click",()=>{
     if(confirm("予想をすべてリセットしますか？")){winners={};save();render();toast("リセットしました");}});
 
@@ -506,19 +487,10 @@
     lines.push("","▶ あなたも予想してみて！",PAGE_URL);
     return lines.join("\n");
   }
-  function shareTextShort(){
-    const pod=podiumText();
-    let lines=["⚽ W杯2026 決勝トーナメント予想"];
-    if(pod.length>0) lines.push(...pod);
-    else lines.push("予想してみて！");
-    lines.push(PAGE_URL);
-    return lines.join("\n");
-  }
 
-  // generate PNG blob (reusable)
+  // generate PNG blob
   async function generatePNG(){
     if(typeof html2canvas!=="function") return null;
-    const wasEdit=editMode; if(wasEdit){editMode=false;render();}
     const orig=sheet.style.transform; sheet.style.transform="scale(1)";
     await new Promise(r=>setTimeout(r,120));
     try{
@@ -526,52 +498,37 @@
         width:1640,height:sheet.scrollHeight,windowWidth:1640});
       return await new Promise(resolve=>cv.toBlob(resolve,"image/png"));
     }catch(e){return null;}
-    finally{sheet.style.transform=orig; if(wasEdit){editMode=true;render();}}
+    finally{sheet.style.transform=orig;}
   }
 
-  // share with image via Web Share API (mobile)
-  async function shareWithImage(text,fallbackUrl){
+  // 📤 画像付き共有 (one button)
+  document.getElementById("shareBtn").addEventListener("click",async()=>{
     toast("画像を生成中…");
     const blob=await generatePNG();
+    const text=buildShareText();
+    // mobile: Web Share API with image file
     if(blob && navigator.canShare && navigator.canShare({files:[new File([blob],"x.png",{type:"image/png"})]})){
       try{
         const file=new File([blob],"wc2026-yosou.png",{type:"image/png"});
         await navigator.share({text:text,files:[file]});
         toast("共有しました"); return;
-      }catch(e){if(e.name==="AbortError")return;}
+      }catch(e){if(e.name==="AbortError"){toast("");return;}}
     }
-    // fallback: download image + open URL
+    // PC fallback: download image + copy text
     if(blob){
       const a=document.createElement("a");a.download="wc2026-yosou.png";
       a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);
-      toast("画像をダウンロードしました");
     }
-    if(fallbackUrl) setTimeout(()=>window.open(fallbackUrl,"_blank"),500);
-  }
+    try{await navigator.clipboard.writeText(text);}catch(e){}
+    toast(blob?"画像をダウンロード＋テキストをコピーしました":"テキストをコピーしました");
+  });
 
-  document.getElementById("lineBtn").addEventListener("click",()=>{
-    const textUrl="https://line.me/R/share?text="+encodeURIComponent(buildShareText());
-    shareWithImage(buildShareText(),textUrl);
-  });
-  document.getElementById("xBtn").addEventListener("click",()=>{
-    const tweetUrl="https://twitter.com/intent/tweet?text="+encodeURIComponent(shareTextShort());
-    shareWithImage(shareTextShort(),tweetUrl);
-  });
+  // 📋 テキストコピー
   document.getElementById("copyBtn").addEventListener("click",async()=>{
     const text=buildShareText();
     try{await navigator.clipboard.writeText(text);toast("コピーしました");}
     catch(e){const ta=document.createElement("textarea");ta.value=text;ta.style.cssText="position:fixed;opacity:0";
       document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();toast("コピーしました");}
-  });
-
-  // ---- PNG save (download only) ----
-  document.getElementById("pngBtn").addEventListener("click",async()=>{
-    toast("画像を生成中…");
-    const blob=await generatePNG();
-    if(blob){const a=document.createElement("a");a.download="wc2026-yosou.png";
-      a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);
-      toast("PNG保存完了");}
-    else toast("画像生成失敗");
   });
   let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(drawLinks,120);});
 
