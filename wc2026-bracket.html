@@ -156,6 +156,7 @@
   </div>
   <button class="btn" id="lineBtn" style="background:#06C755;color:#fff;border-color:#06C755">LINE 画像共有</button>
   <button class="btn" id="xBtn" style="background:#000;color:#fff;border-color:#000">𝕏 テキスト共有</button>
+  <button class="btn" id="saveBtn">📷 画像保存</button>
   <button class="btn" id="copyBtn">📋 コピー</button>
   <button class="btn warn" id="resetBtn">リセット</button>
 </div>
@@ -543,6 +544,18 @@
   // コピー
   document.getElementById("copyBtn").addEventListener("click",()=>{
     copyText(buildShareText()); toast("コピーしました");
+  });
+
+  // 画像保存（ダウンロード）
+  document.getElementById("saveBtn").addEventListener("click",async()=>{
+    toast("画像を作成中…");
+    const blob=await captureImage();
+    if(blob){
+      const a=document.createElement("a");a.download="wc2026-yosou.png";
+      a.href=URL.createObjectURL(blob);a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+      toast("ダウンロードフォルダに保存しました");
+    }else{toast("画像の作成に失敗しました");}
   });
   let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(drawLinks,120);});
 
